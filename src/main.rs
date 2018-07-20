@@ -73,6 +73,7 @@ fn main() {
         .replace("Dedicated IP servers", "Dedicated"),
     ).unwrap();
 
+    // Check whether filters were applied
     // Detect applied filters
     let mut country_filter: Option<String> = None;
     let mut standard_filter = false;
@@ -81,8 +82,7 @@ fn main() {
     let mut dedicated_filter = false;
     let mut tor_filter = false;
     let mut obfuscated_filter = false;
-
-    for filter in std::env::args() {
+    for filter in std::env::args().into_iter().skip(1) {
         match filter.as_ref() {
             "p2p" => p2p_filter = true,
             "standard" => standard_filter = true,
@@ -159,5 +159,10 @@ fn main() {
     // Sort the data on load
     data.sort_unstable_by(|x, y| x.load.cmp(&y.load));
 
-    println!("{}", data[0].domain);
+    if data.len() != 0 {
+        println!("{}", data[0].domain);
+    } else {
+        eprintln!("Could not find a server");
+        std::process::exit(1);
+    }
 }
