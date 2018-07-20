@@ -4,7 +4,7 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 /// The categories a Server can be in.
 enum CategoryType {
     /// A standard VPN server
@@ -41,12 +41,12 @@ impl From<String> for CategoryType {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 struct Category {
     name: CategoryType,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 /// A server by NordVPN.
 struct Server {
     /// The country this server is located in.
@@ -60,7 +60,8 @@ struct Server {
 }
 
 fn main() {
-    let data: Vec<Server> = serde_json::from_str(&reqwest::get("https://api.nordvpn.com/server")
+    let mut data: Vec<Server> = serde_json::from_str(
+        &reqwest::get("https://api.nordvpn.com/server")
         .unwrap()
         .text()
         .unwrap()
@@ -69,9 +70,10 @@ fn main() {
         .replace("Obfuscated Servers", "Obfuscated")
         .replace("Double VPN", "Double")
         .replace("Onion Over VPN", "Tor")
-        .replace("Dedicated IP servers", "Dedicated"))
-        .unwrap();
+        .replace("Dedicated IP servers", "Dedicated"),
+    ).unwrap();
 
+    // Detect applied filters
     let mut country_filter: Option<String> = None;
     let mut standard_filter = false;
     let mut p2p_filter = false;
@@ -91,60 +93,71 @@ fn main() {
             _ => country_filter = Some(filter),
         };
     }
+
     // Filter servers that are not required.
 
     // Filtering countries
-    let data: Vec<Server> = if country_filter.is_some() {
-        // TODO: filter countries
-        data
-    } else {
-        data
+    if country_filter.is_some() {
+        let country: String = country_filter.unwrap().to_uppercase();
+        (&mut data).retain(|server| server.flag == country);
     };
 
-    let data: Vec<Server> = if standard_filter {
-        // TODO: filter standard
-        data
-    } else {
-        data
+    // Filtering Standard
+    if standard_filter {
+        (&mut data).retain(|server| {
+            server.categories.contains(&Category {
+                name: CategoryType::Standard,
+            })
+        });
     };
 
-    let data: Vec<Server> = if p2p_filter {
-        // TODO: filter P2P
-        data
-    } else {
-        data
+    // Filtering P2P
+    if p2p_filter {
+        (&mut data).retain(|server| {
+            server.categories.contains(&Category {
+                name: CategoryType::P2P,
+            })
+        });
     };
 
-    let data: Vec<Server> = if tor_filter {
-        // TODO: filter Tor
-        data
-    } else {
-        data
+    // Filtering Tor/Onion
+    if tor_filter {
+        (&mut data).retain(|server| {
+            server.categories.contains(&Category {
+                name: CategoryType::Tor,
+            })
+        });
     };
 
-    let data: Vec<Server> = if double_filter {
-        // TODO: filter double
-        data
-    } else {
-        data
+    // Filtering Double
+    if double_filter {
+        (&mut data).retain(|server| {
+            server.categories.contains(&Category {
+                name: CategoryType::Double,
+            })
+        });
     };
 
-    let data: Vec<Server> = if obfuscated_filter {
-        // TODO: filter obfuscated
-        data
-    } else {
-        data
+    // Filtering Obfuscated servers
+    if obfuscated_filter {
+        (&mut data).retain(|server| {
+            server.categories.contains(&Category {
+                name: CategoryType::Obfuscated,
+            })
+        });
     };
 
-    let mut data: Vec<Server> = if dedicated_filter {
-        // TODO: filter dedicated
-        data
-    } else {
-        data
+    // Filtering Dedicated
+    if dedicated_filter {
+        (&mut data).retain(|server| {
+            server.categories.contains(&Category {
+                name: CategoryType::P2P,
+            })
+        });
     };
 
     // Sort the data on load
-    data.sort_unstable_by(|ref x, ref y| x.load.cmp(&y.load));
+    data.sort_unstable_by(|x, y| x.load.cmp(&y.load));
 
-    println!("{:?}", data);
+    println!("{}", data[0].domain);
 }
