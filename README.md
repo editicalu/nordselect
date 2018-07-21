@@ -20,6 +20,7 @@ The default is any server in the world.
     # A server in Latvia with P2P that supports tcp.
     nordselect lv tcp p2p
     # A server that supports both Tor and double VPN
+    nordselect tor double
 
 # Selection method
 
