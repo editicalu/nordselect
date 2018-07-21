@@ -47,6 +47,22 @@ struct Category {
 }
 
 #[derive(Debug, Deserialize, PartialEq)]
+struct Features {
+    pub ikev2: bool,
+    pub openvpn_udp: bool,
+    pub openvpn_tcp: bool,
+    pub socks: bool,
+    pub proxy: bool,
+    pub pptp: bool,
+    pub l2tp: bool,
+    pub openvpn_xor_udp: bool,
+    pub openvpn_xor_tcp: bool,
+    pub proxy_cybersec: bool,
+    pub proxy_ssl: bool,
+    pub proxy_ssl_cybersec: bool,
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
 /// A server by NordVPN.
 struct Server {
     /// The country this server is located in.
@@ -55,8 +71,10 @@ struct Server {
     domain: String,
     /// The current load on this server.
     pub load: u8,
-    // Categories this server is in.
+    /// Categories this server is in.
     categories: Vec<Category>,
+    /// Features of the server
+    features: Features,
 }
 
 fn main() {
@@ -82,6 +100,8 @@ fn main() {
     let mut dedicated_filter = false;
     let mut tor_filter = false;
     let mut obfuscated_filter = false;
+    let mut tcp_filter = false;
+    let mut udp_filter = false;
     for filter in std::env::args().into_iter().skip(1) {
         match filter.as_ref() {
             "p2p" => p2p_filter = true,
@@ -90,6 +110,8 @@ fn main() {
             "dedicated" => dedicated_filter = true,
             "tor" => tor_filter = true,
             "obfuscated" => obfuscated_filter = true,
+            "tcp" => tcp_filter = true,
+            "udp" => udp_filter = true,
             _ => country_filter = Some(filter),
         };
     }
@@ -155,6 +177,14 @@ fn main() {
             })
         });
     };
+
+    if tcp_filter {
+        (&mut data).retain(|server| server.features.openvpn_tcp);
+    }
+
+    if udp_filter {
+        (&mut data).retain(|server| server.features.openvpn_udp);
+    }
 
     // Sort the data on load
     data.sort_unstable_by(|x, y| x.load.cmp(&y.load));
