@@ -4,7 +4,7 @@ extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Clone)]
 /// The categories a Server can be in.
 pub enum CategoryType {
     /// A standard VPN server
@@ -41,12 +41,13 @@ impl From<String> for CategoryType {
     }
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
-pub struct Category {
+#[derive(Debug, Deserialize, PartialEq, Clone)]
+struct Category {
     pub name: CategoryType,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Clone)]
+/// All protocols and other features a Server can have.
 pub struct Features {
     pub ikev2: bool,
     pub openvpn_udp: bool,
@@ -62,33 +63,84 @@ pub struct Features {
     pub proxy_ssl_cybersec: bool,
 }
 
-#[derive(Debug, Deserialize, PartialEq)]
+#[derive(Debug, Deserialize, PartialEq, Clone)]
 /// A server by NordVPN.
 pub struct Server {
     /// The country this server is located in.
-    pub flag: String,
+    flag: String,
     /// The domain of this server.
     pub domain: String,
     /// The current load on this server.
-    pub load: u8,
+    load: u8,
     /// Categories this server is in.
-    pub categories: Vec<Category>,
+    categories: Vec<Category>,
     /// Features of the server
-    pub features: Features,
+    features: Features,
 }
 
-impl Server {
-    pub fn from_api() -> Result<Vec<Server>, Box<std::error::Error>> {
+/// A list of individual servers.
+pub struct Servers {
+    /// The actual servers
+    servers: Vec<Server>,
+}
+
+impl Servers {
+    /// Downloads the list of servers from the API.
+    pub fn from_api() -> Result<Servers, Box<std::error::Error>> {
         let mut data = reqwest::get("https://api.nordvpn.com/server")?;
         let text = data.text()?;
 
-        Ok(serde_json::from_str(
-            // TODO: find a better solution to these expensive replacements.
-            &text.replace("Standard VPN servers", "Standard")
-                .replace("Obfuscated Servers", "Obfuscated")
-                .replace("Double VPN", "Double")
-                .replace("Onion Over VPN", "Tor")
-                .replace("Dedicated IP servers", "Dedicated"),
-        )?)
+        Ok(Servers {
+            servers: serde_json::from_str(
+                // TODO: find a better solution to these expensive replacements.
+                &text.replace("Standard VPN servers", "Standard")
+                    .replace("Obfuscated Servers", "Obfuscated")
+                    .replace("Double VPN", "Double")
+                    .replace("Onion Over VPN", "Tor")
+                    .replace("Dedicated IP servers", "Dedicated"),
+            )?,
+        })
+    }
+
+    /// Returns the perfect server. This should be called when the filters are applied.
+    pub fn get_perfect_server(&self) -> Option<Server> {
+        match self.servers.get(0) {
+            Some(x) => Some(x.clone()),
+            None => None,
+        }
+    }
+}
+
+#[derive(PartialEq)]
+/// A protocol to connect to the VPN server.
+pub enum Protocol {
+    Udp,
+    Tcp,
+}
+
+/// All filters that can be applied.
+impl Servers {
+    /// Filters the servers on a certain category.
+    pub fn filter_category(&mut self, category: CategoryType) {
+        let category_struct = Category { name: category };
+        (&mut self.servers).retain(|server| server.categories.contains(&category_struct));
+    }
+
+    /// Filters the servers on a certain protocol.
+    pub fn filter_protocol(&mut self, protocol: Protocol) {
+        match protocol {
+            Protocol::Tcp => (&mut self.servers).retain(|server| server.features.openvpn_tcp),
+            Protocol::Udp => (&mut self.servers).retain(|server| server.features.openvpn_udp),
+        };
+    }
+
+    /// Filters the servers on a certain country.
+    pub fn filter_country(&mut self, country: &str) {
+        (&mut self.servers).retain(|server| server.flag == country)
+    }
+
+    /// Sorts the servers on their load.
+    pub fn sort_load(&mut self) {
+        (&mut self.servers).sort_unstable_by(|x, y| x.load.cmp(&y.load));
     }
 }

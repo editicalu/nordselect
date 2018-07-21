@@ -1,9 +1,9 @@
 extern crate nordselect;
 
-use nordselect::{Category, CategoryType, Server};
+use nordselect::{CategoryType, Protocol, Servers};
 
 fn main() {
-    let mut data = Server::from_api().unwrap();
+    let mut data = Servers::from_api().unwrap();
 
     // Check whether filters were applied
     // Detect applied filters
@@ -35,78 +35,54 @@ fn main() {
     // Filtering countries
     if country_filter.is_some() {
         let country: String = country_filter.unwrap().to_uppercase();
-        (&mut data).retain(|server| server.flag == country);
+        data.filter_country(&country);
     };
 
     // Filtering Standard
     if standard_filter {
-        (&mut data).retain(|server| {
-            server.categories.contains(&Category {
-                name: CategoryType::Standard,
-            })
-        });
+        data.filter_category(CategoryType::Standard);
     };
 
     // Filtering P2P
     if p2p_filter {
-        (&mut data).retain(|server| {
-            server.categories.contains(&Category {
-                name: CategoryType::P2P,
-            })
-        });
+        data.filter_category(CategoryType::P2P);
     };
 
     // Filtering Tor/Onion
     if tor_filter {
-        (&mut data).retain(|server| {
-            server.categories.contains(&Category {
-                name: CategoryType::Tor,
-            })
-        });
+        data.filter_category(CategoryType::Tor);
     };
 
     // Filtering Double
     if double_filter {
-        (&mut data).retain(|server| {
-            server.categories.contains(&Category {
-                name: CategoryType::Double,
-            })
-        });
+        data.filter_category(CategoryType::Double);
     };
 
     // Filtering Obfuscated servers
     if obfuscated_filter {
-        (&mut data).retain(|server| {
-            server.categories.contains(&Category {
-                name: CategoryType::Obfuscated,
-            })
-        });
+        data.filter_category(CategoryType::Obfuscated);
     };
 
     // Filtering Dedicated
     if dedicated_filter {
-        (&mut data).retain(|server| {
-            server.categories.contains(&Category {
-                name: CategoryType::P2P,
-            })
-        });
+        data.filter_category(CategoryType::Dedicated);
     };
 
     if tcp_filter {
-        (&mut data).retain(|server| server.features.openvpn_tcp);
+        data.filter_protocol(Protocol::Tcp);
     }
 
     if udp_filter {
-        (&mut data).retain(|server| server.features.openvpn_udp);
+        data.filter_protocol(Protocol::Udp);
     }
 
     // Sort the data on load
-    data.sort_unstable_by(|x, y| x.load.cmp(&y.load));
+    data.sort_load();
 
-    if data.len() != 0 {
-        println!("{}", data[0].domain);
+    if let Some(server) = data.get_perfect_server() {
+        println!("{}", server.domain);
     } else {
-        eprintln!("Could not find a server");
+        eprintln!("No server found");
         std::process::exit(1);
     }
 }
