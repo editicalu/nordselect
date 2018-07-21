@@ -1,13 +1,12 @@
 [package]
 name = "nordselect"
 description = "Select the ideal NordVPN server"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Ward Segers <w@rdsegers.be>"]
 repository = "https://github.com/editicalu/nordselect"
 license = "MIT"
 homepage = "https://editicalu.github.io/nordselect"
 keywords = ["vpn", "nordvpn"]
-maintenance = { status = "actively-maintained" }
 
 [dependencies]
 serde="^1"
