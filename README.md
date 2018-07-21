@@ -17,14 +17,14 @@ The default is any server in the world.
 
     # I don't care, just pick a server
     nordselect
-    # A server in Latvia with P2P that supports tcp.
+    # A server in Latvia with P2P that supports p2p over tcp.
     nordselect lv tcp p2p
     # A server that supports both Tor and double VPN
     nordselect tor double
 
 # Selection method
 
-To select a server without waiting to long, we use the following method:
+To select a server without waiting too long, we use the following method:
 
 - Take all possible servers with the given filters.
 - Take the one with the least load.
