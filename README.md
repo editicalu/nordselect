@@ -26,7 +26,6 @@ The default is any server in the world.
 To select a server without waiting to long, we use the following method:
 
 - Take all possible servers with the given filters.
-- Take the 10 servers with the least load.
-- Ping these servers and take the fastest one.
+- Take the one with the least load.
 
-If you think you have a better selection procedure, please let me know by opening an issue.
+If you think you have a better selection procedure, please let me know by opening an issue. I'm thinking about adding ping tests to the ones with the least load.
