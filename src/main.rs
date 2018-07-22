@@ -26,6 +26,7 @@ fn main() {
             "obfuscated" => obfuscated_filter = true,
             "tcp" => tcp_filter = true,
             "udp" => udp_filter = true,
+            // TODO: enhance this
             _ => country_filter = Some(filter),
         };
     }
@@ -68,10 +69,12 @@ fn main() {
         data.filter_category(CategoryType::Dedicated);
     };
 
+    // Filtering servers with TCP capacity
     if tcp_filter {
         data.filter_protocol(Protocol::Tcp);
     }
 
+    // Filtering servers with UDP capacity
     if udp_filter {
         data.filter_protocol(Protocol::Udp);
     }
@@ -79,6 +82,7 @@ fn main() {
     // Sort the data on load
     data.sort_load();
 
+    // Print the ideal server, if found.
     if let Some(server) = data.get_perfect_server() {
         println!("{}", server.domain);
     } else {

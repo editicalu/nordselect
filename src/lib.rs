@@ -1,3 +1,27 @@
+//! NordSelect is a small library to find the best NordVPN servers for your needs.
+//!
+//! Included is a small CLI that uses most of the functionality. Usage of that can be found
+//! [here](https://editicalu.github.io/nordselect)
+//!
+//!
+//! # Example
+//! ```
+//! use nordselect::Servers;
+//!
+//! fn main() {
+//!     // Get data    
+//!     let mut servers = Servers::from_api().unwrap();
+//!
+//!     // Filter: only servers in Canada
+//!     servers.filter_country("ca");
+//!
+//!     // Sort the servers on load.
+//!     servers.sort_load();
+//!
+//!     assert!(servers.get_perfect_server().is_some());
+//! }
+//! ```
+
 extern crate reqwest;
 #[macro_use]
 extern crate serde_derive;
@@ -42,7 +66,9 @@ impl From<String> for CategoryType {
 }
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
+/// The struct used to identify categories.
 struct Category {
+    /// The name of the category (converted into a type)
     pub name: CategoryType,
 }
 
@@ -50,16 +76,39 @@ struct Category {
 /// All protocols and other features a Server can have.
 pub struct Features {
     pub ikev2: bool,
+    /// Support for udp over openvpn
     pub openvpn_udp: bool,
+    /// Support for tcp over openvpn
     pub openvpn_tcp: bool,
+    /// Support for the SOCKS protocol.
     pub socks: bool,
+    /// This server can be used as a proxy
     pub proxy: bool,
+    /// Support for the older Point-to-Point Tunneling Protocol
+    ///
+    /// **Warning**: this protocol is considered unsafe. Usage is discouraged.
+    ///
+    /// From the NordVPN site:
+    /// > Although technically you can use the L2TP/PPTP protocol, it has serious security flaws.
+    /// > Whenever possible, we recommend choosing OpenVPN or IKEv2/IPSec instead.
     pub pptp: bool,
+    /// Support for the Layer 2 Tunneling Protocol
+    ///
+    /// **Warning**: this protocol is considered unsafe. Usage is discouraged.
+    ///
+    /// From the NordVPN site:
+    /// > Although technically you can use the L2TP/PPTP protocol, it has serious security flaws.
+    /// > Whenever possible, we recommend choosing OpenVPN or IKEv2/IPSec instead.
     pub l2tp: bool,
+    /// Support for udp over openvpn with xor obfuscation
     pub openvpn_xor_udp: bool,
+    /// Support for tcp over openvpn with xor obfuscation
     pub openvpn_xor_tcp: bool,
+    /// Support for a proxy with cybersec
     pub proxy_cybersec: bool,
+    /// Support for a proxy with SSL
     pub proxy_ssl: bool,
+    /// Support for a proxy with cybersec and SSL
     pub proxy_ssl_cybersec: bool,
 }
 
@@ -84,6 +133,7 @@ pub struct Servers {
     servers: Vec<Server>,
 }
 
+/// Functions to build and read data from the Servers.
 impl Servers {
     /// Downloads the list of servers from the API.
     pub fn from_api() -> Result<Servers, Box<std::error::Error>> {
@@ -114,7 +164,9 @@ impl Servers {
 #[derive(PartialEq)]
 /// A protocol to connect to the VPN server.
 pub enum Protocol {
+    /// The [User Datagram Protocol](https://en.wikipedia.org/wiki/User_Datagram_Protocol)
     Udp,
+    /// The [Transmission Control Protocol](https://en.wikipedia.org/wiki/Transmission_Control_Protocol)
     Tcp,
 }
 
