@@ -22,7 +22,7 @@ Possible filters are:
 
 ## Library Usage
 
-The documentation of the library can be found at [docs.rs](https://docs.rs/crate/nordselect/0.1.0).
+The documentation of the library can be found at [docs.rs](https://docs.rs/crate/nordselect/).
 
 # Selection method
 
