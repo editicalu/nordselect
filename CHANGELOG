@@ -1,0 +1,13 @@
+# Changelog
+
+## Version 0.2.0
+
+- Splitting the crate into a reusable library.
+- Adding more documentation.
+- Ping functionality (non-simultanious).
+
+## Version 0.1.0
+
+- Initial release:
+  - Filter servers
+  - Sort on load
