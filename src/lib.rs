@@ -75,6 +75,7 @@ struct Category {
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 /// All protocols and other features a Server can have.
 pub struct Features {
+    /// Support for IKEv2 protocol.
     pub ikev2: bool,
     /// Support for udp over openvpn
     pub openvpn_udp: bool,
