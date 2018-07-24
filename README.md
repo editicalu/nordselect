@@ -2,6 +2,17 @@
 
 A fast library/CLI to find the perfect NordVPN server to connect to, based on given filters.
 
+# Installation
+
+To install the `nordselect` CLI using [Cargo (Rust package manager)](https://www.rust-lang.org/en-US/install.html), enter `cargo install nordselect`. Because of the pinging functionality, you have to execute the following command:
+    sudo setcap cap_net_raw+ep ~/.cargo/bin/nordselect    # allow binary to send ping packets
+
+You might require the following packages:
+    # Ubuntu
+    apt install autoconf automake libtool gcc
+
+Official binaries (PPA for Ubuntu and AUR package for Arch Linux) will be available when nordselect is stabilized.
+
 # CLI Usage
 
     nordselect [FILTER ..]
