@@ -82,6 +82,11 @@ fn main() {
     // Sort the data on load
     data.sort_load();
 
+    if let Err(x) = data.benchmark_ping(10, 2, false) {
+        eprintln!("An error occured when pinging: {}", x);
+        eprintln!("Results will not include ping results");
+    }
+
     // Print the ideal server, if found.
     if let Some(server) = data.get_perfect_server() {
         println!("{}", server.domain);
