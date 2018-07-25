@@ -25,6 +25,7 @@
 extern crate reqwest;
 #[macro_use]
 extern crate serde_derive;
+extern crate oping;
 extern crate serde;
 extern crate serde_json;
 
@@ -126,6 +127,26 @@ pub struct Server {
     categories: Vec<Category>,
     /// Features of the server
     features: Features,
+    ping: Option<usize>,
+}
+
+/// Ping operations
+impl Server {
+    /// Ping per instance.
+    fn ping_single(&mut self, tries: usize) -> Result<(), Box<std::error::Error>> {
+        let sum: usize = {
+            let mut sum = 0usize;
+            for _ in 0..tries {
+                let mut pingr = oping::Ping::new();
+                pingr.add_host(&self.domain)?;
+                sum = sum + pingr.send().unwrap().next().unwrap().latency_ms as usize;
+            }
+            sum
+        };
+        self.ping = Some(sum / tries as usize);
+        eprintln!("{} pinged {}", self.domain, self.ping.unwrap());
+        Ok(())
+    }
 }
 
 /// A list of individual servers.
@@ -195,5 +216,48 @@ impl Servers {
     /// Sorts the servers on their load.
     pub fn sort_load(&mut self) {
         (&mut self.servers).sort_unstable_by(|x, y| x.load.cmp(&y.load));
+    }
+
+    /// Sorts servers on ping result. Should only be called when all servers were able to ping.
+    fn sort_ping(&mut self) {
+        (&mut self.servers).sort_unstable_by(|x, y| x.ping.unwrap().cmp(&y.ping.unwrap()));
+    }
+
+    /// Removes all but the `max` best servers at the moment. Does nothing if there are less
+    /// servers.
+    pub fn cut(&mut self, max: usize) {
+        self.servers.truncate(max);
+    }
+
+    /// Benchmark the given amount of first servers in the list based upon their ping latency.
+    /// Omits other servers.
+    ///
+    /// Returns `Ok(())` when succeeded. Returns an `Box<Error>` otherwise.
+    ///
+    /// - `servers`: amount of best servers that should be tested.
+    /// - `tries`: how many tries should be done. The average ping is taken.
+    /// - `parallel`: whether the tests should be run in parallel. This will make tests go faster,
+    ///   but less accurate.
+    pub fn benchmark_ping(
+        &mut self,
+        servers: usize,
+        tries: usize,
+        parallel: bool,
+    ) -> Result<(), Box<std::error::Error>> {
+        // Omit other servers
+        self.cut(servers);
+
+        if parallel {
+            // TODO
+        } else {
+            self.servers
+                .iter_mut()
+                .for_each(|mut x| (&mut x).ping_single(tries).unwrap());
+        };
+
+        // No errors -> sort
+        self.sort_ping();
+
+        Ok(())
     }
 }
