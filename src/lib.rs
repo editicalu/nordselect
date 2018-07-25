@@ -29,6 +29,9 @@ extern crate oping;
 extern crate serde;
 extern crate serde_json;
 
+use std::collections::HashSet;
+use std::iter::FromIterator;
+
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 /// The categories a Server can be in.
 pub enum CategoryType {
@@ -172,6 +175,10 @@ impl Servers {
                     .replace("Dedicated IP servers", "Dedicated"),
             )?,
         })
+    }
+
+    pub fn get_flags(&self) -> HashSet<&str> {
+        HashSet::from_iter(self.servers.iter().map(|server| server.flag.as_ref()))
     }
 
     /// Returns the perfect server. This should be called when the filters are applied.

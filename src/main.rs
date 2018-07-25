@@ -37,7 +37,7 @@ fn main() {
         )
         .arg(
             Arg::with_name("filter")
-                .required(true)
+                .required(false)
                 .multiple(true)
                 .index(1),
         )
@@ -62,26 +62,41 @@ fn main() {
     let mut obfuscated_filter = false;
     let mut tcp_filter = false;
     let mut udp_filter = false;
-    for filter in matches.values_of("filter").unwrap() {
-        match filter {
-            "p2p" => p2p_filter = true,
-            "standard" => standard_filter = true,
-            "double" => double_filter = true,
-            "dedicated" => dedicated_filter = true,
-            "tor" => tor_filter = true,
-            "obfuscated" => obfuscated_filter = true,
-            "tcp" => tcp_filter = true,
-            "udp" => udp_filter = true,
-            // TODO: enhance this
-            _ => country_filter = Some(String::from(filter)),
-        };
+    {
+        // Parse which countries are in the data
+        let flags = data.get_flags();
+
+        for filter in matches
+            .values_of("filter")
+            .unwrap_or(clap::Values::default())
+        {
+            match filter {
+                "p2p" => p2p_filter = true,
+                "standard" => standard_filter = true,
+                "double" => double_filter = true,
+                "dedicated" => dedicated_filter = true,
+                "tor" => tor_filter = true,
+                "obfuscated" => obfuscated_filter = true,
+                "tcp" => tcp_filter = true,
+                "udp" => udp_filter = true,
+                _ => {
+                    let upper = filter.to_uppercase();
+                    if flags.contains(upper.as_ref() as &str) {
+                        country_filter = Some(upper);
+                    } else {
+                        eprintln!("Error: unknown filter: \"{}\"", filter);
+                        std::process::exit(1);
+                    }
+                }
+            };
+        }
     }
 
     // Filter servers that are not required.
 
     // Filtering countries
     if country_filter.is_some() {
-        let country: String = country_filter.unwrap().to_uppercase();
+        let country: String = country_filter.unwrap();
         data.filter_country(&country);
     };
 
