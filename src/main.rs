@@ -1,9 +1,48 @@
+extern crate clap;
 extern crate nordselect;
 
 use nordselect::{CategoryType, Protocol, Servers};
 
 fn main() {
-    let mut data = Servers::from_api().unwrap();
+    // Parse CLI args
+    use clap::{App, Arg};
+    let matches = App::new("NordSelect")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .arg(
+            Arg::with_name("ping")
+                .short("p")
+                .long("ping")
+                .help("Use ping to find the best server")
+                .takes_value(false),
+        )
+        .arg(
+            Arg::with_name("tries")
+                .short("t")
+                .long("tries")
+                .value_name("TRIES")
+                .default_value("2")
+                .help("Ping every server TRIES times")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("amount")
+                .short("a")
+                .long("amount")
+                .value_name("AMOUNT")
+                .default_value("10")
+                .help("Ping only to the least AMOUNT ones loaded")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("filter")
+                .required(true)
+                .multiple(true)
+                .index(1),
+        )
+        .get_matches();
+
 
     // Check whether filters were applied
     // Detect applied filters
@@ -16,8 +55,8 @@ fn main() {
     let mut obfuscated_filter = false;
     let mut tcp_filter = false;
     let mut udp_filter = false;
-    for filter in std::env::args().into_iter().skip(1) {
-        match filter.as_ref() {
+    for filter in matches.values_of("filter").unwrap() {
+        match filter {
             "p2p" => p2p_filter = true,
             "standard" => standard_filter = true,
             "double" => double_filter = true,
@@ -27,7 +66,7 @@ fn main() {
             "tcp" => tcp_filter = true,
             "udp" => udp_filter = true,
             // TODO: enhance this
-            _ => country_filter = Some(filter),
+            _ => country_filter = Some(String::from(filter)),
         };
     }
 
@@ -82,9 +121,26 @@ fn main() {
     // Sort the data on load
     data.sort_load();
 
-    if let Err(x) = data.benchmark_ping(10, 2, false) {
+    // Perform ping test if required
+    if matches.is_present("ping") {
+        // TODO: avoid crash when no integer
+        let tries: usize = matches
+            .value_of("tries")
+            .unwrap()
+            .parse()
+            .expect("No valid integer");
+
+        // TODO: avoid crash when no integer
+        let amount: usize = matches
+            .value_of("amount")
+            .unwrap()
+            .parse()
+            .expect("No valid integer");
+
+        if let Err(x) = data.benchmark_ping(amount, tries, false) {
         eprintln!("An error occured when pinging: {}", x);
         eprintln!("Results will not include ping results");
+    }
     }
 
     // Print the ideal server, if found.
