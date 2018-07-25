@@ -43,6 +43,13 @@ fn main() {
         )
         .get_matches();
 
+    let mut data = match Servers::from_api() {
+        Ok(x) => x,
+        Err(x) => {
+            eprintln!("Could not download data: {}", x);
+            std::process::exit(1);
+        }
+    };
 
     // Check whether filters were applied
     // Detect applied filters
@@ -138,9 +145,9 @@ fn main() {
             .expect("No valid integer");
 
         if let Err(x) = data.benchmark_ping(amount, tries, false) {
-        eprintln!("An error occured when pinging: {}", x);
-        eprintln!("Results will not include ping results");
-    }
+            eprintln!("An error occured when pinging: {}", x);
+            eprintln!("Results will not include ping results");
+        }
     }
 
     // Print the ideal server, if found.
