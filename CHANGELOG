@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 0.3.0
+
+- Different enhancements on the country filter:
+  - Filter on multiple countries
+  - Use the `eu` filter to take any EU country.
+- Make sure filters are something useful.
+
 ## Version 0.2.0
 
 - Splitting the crate into a reusable library.
