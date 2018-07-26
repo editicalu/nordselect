@@ -2,6 +2,7 @@ extern crate clap;
 extern crate nordselect;
 
 use nordselect::{CategoryType, Protocol, Servers};
+use std::collections::HashSet;
 
 fn main() {
     // Parse CLI args
@@ -37,7 +38,7 @@ fn main() {
         )
         .arg(
             Arg::with_name("filter")
-                .required(true)
+                .required(false)
                 .multiple(true)
                 .index(1),
         )
@@ -53,7 +54,7 @@ fn main() {
 
     // Check whether filters were applied
     // Detect applied filters
-    let mut country_filter: Option<String> = None;
+    let mut country_filter: Option<HashSet<String>> = None;
     let mut standard_filter = false;
     let mut p2p_filter = false;
     let mut double_filter = false;
@@ -62,27 +63,55 @@ fn main() {
     let mut obfuscated_filter = false;
     let mut tcp_filter = false;
     let mut udp_filter = false;
-    for filter in matches.values_of("filter").unwrap() {
-        match filter {
-            "p2p" => p2p_filter = true,
-            "standard" => standard_filter = true,
-            "double" => double_filter = true,
-            "dedicated" => dedicated_filter = true,
-            "tor" => tor_filter = true,
-            "obfuscated" => obfuscated_filter = true,
-            "tcp" => tcp_filter = true,
-            "udp" => udp_filter = true,
-            // TODO: enhance this
-            _ => country_filter = Some(String::from(filter)),
-        };
+    {
+        // Parse which countries are in the data
+        let flags = data.get_flags();
+
+        for filter in matches
+            .values_of("filter")
+            .unwrap_or(clap::Values::default())
+        {
+            match filter {
+                "p2p" => p2p_filter = true,
+                "standard" => standard_filter = true,
+                "double" => double_filter = true,
+                "dedicated" => dedicated_filter = true,
+                "tor" => tor_filter = true,
+                "obfuscated" => obfuscated_filter = true,
+                "tcp" => tcp_filter = true,
+                "udp" => udp_filter = true,
+                "eu" => {
+                    if country_filter.is_none() {
+                        country_filter = Some(HashSet::with_capacity(nordselect::EU.len()));
+                    }
+                    for &country in nordselect::EU.iter() {
+                        country_filter
+                            .as_mut()
+                            .unwrap()
+                            .insert(String::from(country));
+                    }
+                }
+                _ => {
+                    let upper = filter.to_uppercase();
+                    if flags.contains(upper.as_ref() as &str) {
+                        if country_filter.is_none() {
+                            country_filter = Some(HashSet::with_capacity(1));
+                        }
+                        country_filter.as_mut().unwrap().insert(upper);
+                    } else {
+                        eprintln!("Error: unknown filter: \"{}\"", filter);
+                        std::process::exit(1);
+                    }
+                }
+            };
+        }
     }
 
     // Filter servers that are not required.
 
     // Filtering countries
     if country_filter.is_some() {
-        let country: String = country_filter.unwrap().to_uppercase();
-        data.filter_country(&country);
+        data.filter_countries(&country_filter.unwrap());
     };
 
     // Filtering Standard

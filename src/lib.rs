@@ -31,6 +31,17 @@ extern crate oping;
 extern crate serde;
 extern crate serde_json;
 
+use std::collections::HashSet;
+use std::iter::FromIterator;
+
+/// Countries of the [European Union](https://en.wikipedia.org/wiki/European_union), sorted on
+/// alphabetical order in English, excluding countries leaving, in
+/// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2).
+pub const EU: [&str; 27] = [
+    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV",
+    "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+];
+
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 /// The categories a Server can be in.
 pub enum CategoryType {
@@ -167,13 +178,18 @@ impl Servers {
         Ok(Servers {
             servers: serde_json::from_str(
                 // TODO: find a better solution to these expensive replacements.
-                &text.replace("Standard VPN servers", "Standard")
+                &text
+                    .replace("Standard VPN servers", "Standard")
                     .replace("Obfuscated Servers", "Obfuscated")
                     .replace("Double VPN", "Double")
                     .replace("Onion Over VPN", "Tor")
                     .replace("Dedicated IP servers", "Dedicated"),
             )?,
         })
+    }
+
+    pub fn get_flags(&self) -> HashSet<&str> {
+        HashSet::from_iter(self.servers.iter().map(|server| server.flag.as_ref()))
     }
 
     /// Returns the perfect server. This should be called when the filters are applied.
@@ -213,6 +229,11 @@ impl Servers {
     /// Filters the servers on a certain country.
     pub fn filter_country(&mut self, country: &str) {
         (&mut self.servers).retain(|server| server.flag == country)
+    }
+
+    /// Filters the servers on a set of countries. It retains servers from all these countries.
+    pub fn filter_countries(&mut self, countries: &HashSet<String>) {
+        (&mut self.servers).retain(|server| countries.contains(&server.flag))
     }
 
     /// Sorts the servers on their load.
