@@ -32,6 +32,14 @@ extern crate serde_json;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
+/// Countries of the [European Union](https://en.wikipedia.org/wiki/European_union), sorted on
+/// alphabetical order in English, excluding countries leaving, in
+/// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2).
+pub const EU: [&str; 27] = [
+    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV",
+    "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+];
+
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 /// The categories a Server can be in.
 pub enum CategoryType {

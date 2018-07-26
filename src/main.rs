@@ -80,6 +80,17 @@ fn main() {
                 "obfuscated" => obfuscated_filter = true,
                 "tcp" => tcp_filter = true,
                 "udp" => udp_filter = true,
+                "eu" => {
+                    if country_filter.is_none() {
+                        country_filter = Some(HashSet::with_capacity(nordselect::EU.len()));
+                    }
+                    for &country in nordselect::EU.iter() {
+                        country_filter
+                            .as_mut()
+                            .unwrap()
+                            .insert(String::from(country));
+                    }
+                }
                 _ => {
                     let upper = filter.to_uppercase();
                     if flags.contains(upper.as_ref() as &str) {
@@ -100,7 +111,7 @@ fn main() {
 
     // Filtering countries
     if country_filter.is_some() {
-        data.filter_countries(country_filter.unwrap());
+        data.filter_countries(&country_filter.unwrap());
     };
 
     // Filtering Standard
