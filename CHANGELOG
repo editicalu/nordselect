@@ -6,6 +6,7 @@
   - Filter on multiple countries
   - Use the `eu` filter to take any EU country.
 - Make sure filters are something useful.
+- Integration of the ping functions with the CLI
 
 ## Version 0.2.0
 
