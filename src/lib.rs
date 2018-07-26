@@ -168,7 +168,8 @@ impl Servers {
         Ok(Servers {
             servers: serde_json::from_str(
                 // TODO: find a better solution to these expensive replacements.
-                &text.replace("Standard VPN servers", "Standard")
+                &text
+                    .replace("Standard VPN servers", "Standard")
                     .replace("Obfuscated Servers", "Obfuscated")
                     .replace("Double VPN", "Double")
                     .replace("Onion Over VPN", "Tor")
@@ -218,6 +219,11 @@ impl Servers {
     /// Filters the servers on a certain country.
     pub fn filter_country(&mut self, country: &str) {
         (&mut self.servers).retain(|server| server.flag == country)
+    }
+
+    /// Filters the servers on a set of countries. It retains servers from all these countries.
+    pub fn filter_countries(&mut self, countries: &HashSet<String>) {
+        (&mut self.servers).retain(|server| countries.contains(&server.flag))
     }
 
     /// Sorts the servers on their load.

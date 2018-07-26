@@ -2,6 +2,7 @@ extern crate clap;
 extern crate nordselect;
 
 use nordselect::{CategoryType, Protocol, Servers};
+use std::collections::HashSet;
 
 fn main() {
     // Parse CLI args
@@ -53,7 +54,7 @@ fn main() {
 
     // Check whether filters were applied
     // Detect applied filters
-    let mut country_filter: Option<String> = None;
+    let mut country_filter: Option<HashSet<String>> = None;
     let mut standard_filter = false;
     let mut p2p_filter = false;
     let mut double_filter = false;
@@ -82,7 +83,10 @@ fn main() {
                 _ => {
                     let upper = filter.to_uppercase();
                     if flags.contains(upper.as_ref() as &str) {
-                        country_filter = Some(upper);
+                        if country_filter.is_none() {
+                            country_filter = Some(HashSet::with_capacity(1));
+                        }
+                        country_filter.as_mut().unwrap().insert(upper);
                     } else {
                         eprintln!("Error: unknown filter: \"{}\"", filter);
                         std::process::exit(1);
@@ -96,8 +100,7 @@ fn main() {
 
     // Filtering countries
     if country_filter.is_some() {
-        let country: String = country_filter.unwrap();
-        data.filter_country(&country);
+        data.filter_countries(country_filter.unwrap());
     };
 
     // Filtering Standard
