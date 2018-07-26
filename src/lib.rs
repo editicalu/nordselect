@@ -6,14 +6,16 @@
 //!
 //! # Example
 //! ```
-//! use nordselect::Servers;
+//! use nordselect::{Protocol, Servers};
 //!
 //! fn main() {
 //!     // Get data    
 //!     let mut servers = Servers::from_api().unwrap();
 //!
 //!     // Filter: only servers in Canada
-//!     servers.filter_country("ca");
+//!     servers.filter_country("CA");
+//!     // Filter: only TCP compatible servers
+//!     servers.filter_protocol(nordselect::Protocol::Tcp);
 //!
 //!     // Sort the servers on load.
 //!     servers.sort_load();
