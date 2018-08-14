@@ -69,8 +69,10 @@ fn main() {
     if matches.is_present("list_filters") {
         // Show protocols
         println!("PROTOCOLS:\ttcp, udp");
+        // Show server types
         println!("SERVERS:\tstandard, dedicated, double, obfuscated, p2p, tor");
 
+        // Show countries
         let mut flags: Vec<String> = data.flags().iter().map(|&x| x.to_lowercase()).collect();
         flags.sort_unstable();
         let flags = flags;
@@ -81,6 +83,8 @@ fn main() {
             iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
         }
         println!();
+
+        // Show regions
         println!("REGIONS:\teu");
         std::process::exit(0);
     }
@@ -216,9 +220,12 @@ fn main() {
                     eprintln!(
                         "This error means that you did not give permission to nordselect to ping."
                     );
-                    eprintln!("Linux preserves this right to binaries by default.");
+                    eprintln!("More details can be found at https://github.com/cfallin/rust-oping");
                     eprintln!("Hint: to solve this, execute the following command (as root):");
-                    eprintln!("\tsetcap cap_net_raw+ep {}", std::env::args().next().unwrap());
+                    eprintln!(
+                        "\tsetcap cap_net_raw+ep {}",
+                        std::env::args().next().unwrap()
+                    );
                 }
                 _ => {}
             }
