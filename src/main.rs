@@ -44,10 +44,17 @@ fn main() {
                 .takes_value(false),
         )
         .arg(
+            Arg::with_name("list_filters")
+                .long("filters")
+                .help("Show all available filters")
+                .takes_value(false),
+        )
+        .arg(
             Arg::with_name("filter")
                 .required(false)
                 .multiple(true)
-                .index(1),
+                .index(1)
+                .help("Any restriction put on the server. This can be a country ('us'), a protocol ('tcp;) or a type of server ('p2p'). See --filters"),
         )
         .get_matches();
 
@@ -58,6 +65,25 @@ fn main() {
             std::process::exit(1);
         }
     };
+
+    if matches.is_present("list_filters") {
+        // Show protocols
+        println!("PROTOCOLS:\ttcp, udp");
+        println!("SERVERS:\tstandard, dedicated, double, obfuscated, p2p, tor");
+
+        let mut flags: Vec<String> = data.flags().iter().map(|&x| x.to_lowercase()).collect();
+        flags.sort_unstable();
+        let flags = flags;
+
+        let mut iter = flags.iter();
+        if let Some(flag) = iter.next() {
+            print!("COUNTRIES:\t{}", flag.to_lowercase());
+            iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
+        }
+        println!();
+        println!("REGIONS:\teu");
+        std::process::exit(0);
+    }
 
     // Check whether filters were applied
     // Detect applied filters
