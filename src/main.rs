@@ -183,6 +183,21 @@ fn main() {
         if let Err(x) = data.benchmark_ping(amount, tries, false) {
             eprintln!("An error occured when pinging: {}", x);
             eprintln!("Results will not include ping results");
+
+            match x.to_string().as_str() {
+                "oping::PingError::LibOpingError: Operation not permitted" => {
+                    eprintln!("");
+                    eprintln!(
+                        "This error means that you did not give permission to nordselect to ping."
+                    );
+                    eprintln!("Linux preserves this right to binaries by default.");
+                    eprintln!("Hint: to solve this, execute the following command (as root):");
+                    eprintln!("\tsetcap cap_net_raw+ep {}", std::env::args().next().unwrap());
+                }
+                _ => {}
+            }
+
+            eprintln!("");
         }
     }
 
