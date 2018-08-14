@@ -160,7 +160,10 @@ impl Server {
         self.ping = Some(sum / tries as usize);
         Ok(())
     }
+}
 
+/// Non-ping operations.
+impl Server {
     /// Returns the unique identifier of the server, without returning the full domain.
     ///
     /// This name is extracted from the `Server` everytime the function is called.
