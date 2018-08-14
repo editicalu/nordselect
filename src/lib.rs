@@ -6,21 +6,23 @@
 //!
 //! # Example
 //! ```
-//! use nordselect::{Protocol, Servers};
+//! use nordselect::{CategoryType, Protocol, Servers};
 //!
 //! fn main() {
-//!     // Get data    
+//!     // Get data
 //!     let mut servers = Servers::from_api().unwrap();
 //!
 //!     // Filter: only servers in Canada
 //!     servers.filter_country("CA");
 //!     // Filter: only TCP compatible servers
 //!     servers.filter_protocol(nordselect::Protocol::Tcp);
+//!     // Filter: only standard servers
+//!     servers.filter_category(CategoryType::Standard);
 //!
 //!     // Sort the servers on load.
 //!     servers.sort_load();
 //!
-//!     assert!(servers.get_perfect_server().is_some());
+//!     assert!(servers.perfect_server().is_some());
 //! }
 //! ```
 
