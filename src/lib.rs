@@ -205,12 +205,25 @@ impl Servers {
         })
     }
 
+    #[deprecated(since = "0.3.2", note = "please use `flags` instead")]
     pub fn get_flags(&self) -> HashSet<&str> {
+        self.flags()
+    }
+
+    pub fn flags(&self) -> HashSet<&str> {
         HashSet::from_iter(self.servers.iter().map(|server| server.flag.as_ref()))
     }
 
-    /// Returns the perfect server. This should be called when the filters are applied.
+    #[deprecated(since = "0.3.2", note = "please use `perfect_server` instead")]
     pub fn get_perfect_server(&self) -> Option<Server> {
+        match self.servers.get(0) {
+            Some(x) => Some(x.clone()),
+            None => None,
+        }
+    }
+
+    /// Returns the perfect server. This should be called when the filters are applied.
+    pub fn perfect_server(&self) -> Option<Server> {
         match self.servers.get(0) {
             Some(x) => Some(x.clone()),
             None => None,

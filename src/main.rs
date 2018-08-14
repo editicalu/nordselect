@@ -72,7 +72,7 @@ fn main() {
     let mut udp_filter = false;
     {
         // Parse which countries are in the data
-        let flags = data.get_flags();
+        let flags = data.flags();
 
         for filter in matches
             .values_of("filter")
@@ -187,7 +187,7 @@ fn main() {
     }
 
     // Print the ideal server, if found.
-    if let Some(server) = data.get_perfect_server() {
+    if let Some(server) = data.perfect_server() {
         println!(
             "{}",
             match matches.is_present("domain") {
