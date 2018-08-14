@@ -153,12 +153,11 @@ impl Server {
             for _ in 0..tries {
                 let mut pingr = oping::Ping::new();
                 pingr.add_host(&self.domain)?;
-                sum = sum + pingr.send().unwrap().next().unwrap().latency_ms as usize;
+                sum = sum + pingr.send()?.next().unwrap().latency_ms as usize;
             }
             sum
         };
         self.ping = Some(sum / tries as usize);
-        eprintln!("{} pinged {}", self.domain, self.ping.unwrap());
         Ok(())
     }
 
@@ -305,9 +304,9 @@ impl Servers {
         if parallel {
             // TODO
         } else {
-            self.servers
-                .iter_mut()
-                .for_each(|mut x| (&mut x).ping_single(tries).unwrap());
+            for mut server in &mut self.servers {
+                (&mut server).ping_single(tries)?;
+            }
         };
 
         // No errors -> sort
