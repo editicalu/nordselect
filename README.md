@@ -31,6 +31,10 @@ Possible filters are:
     # A server that supports both Tor and double VPN
     nordselect tor double
 
+    # Use case: in combination with openvpn-nordvpn (Arch Linux):
+    # https://github.com/nstinus/nordvpn
+    nordvpn start `nordselect ca`
+
 ## Library Usage
 
 The documentation of the library can be found at [docs.rs](https://docs.rs/crate/nordselect/).

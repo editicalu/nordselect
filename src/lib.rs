@@ -25,6 +25,7 @@
 //! ```
 
 extern crate reqwest;
+extern crate regex;
 #[macro_use]
 extern crate serde_derive;
 extern crate oping;
@@ -159,6 +160,22 @@ impl Server {
         self.ping = Some(sum / tries as usize);
         eprintln!("{} pinged {}", self.domain, self.ping.unwrap());
         Ok(())
+    }
+
+    /// Returns the unique identifier of the server, without returning the full domain.
+    /// 
+    /// This name is extracted from the `Server` everytime the function is called.
+    pub fn name(&self) -> Option<&str> {
+        use regex::Regex;
+        let re = Regex::new(r"(.+)\.nordvpn.com").unwrap();
+        let caps = match re.captures(&self.domain) {
+            Some(caps) => caps,
+            None => {return None;},
+        };
+        match caps.get(1) {
+            Some(matches) => Some(matches.as_str()),
+            None => None,
+        }
     }
 }
 

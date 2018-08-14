@@ -37,6 +37,13 @@ fn main() {
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("domain")
+                .short("d")
+                .long("domain")
+                .help("Print the full domain instead of the short identifier (us1.nordvpn.com instead of us1)")
+                .takes_value(false),
+        )
+        .arg(
             Arg::with_name("filter")
                 .required(false)
                 .multiple(true)
@@ -181,7 +188,13 @@ fn main() {
 
     // Print the ideal server, if found.
     if let Some(server) = data.get_perfect_server() {
-        println!("{}", server.domain);
+        println!(
+            "{}",
+            match matches.is_present("domain") {
+                true => &server.domain,
+                false => server.name().unwrap_or(&server.domain),
+            }
+        );
     } else {
         eprintln!("No server found");
         std::process::exit(1);

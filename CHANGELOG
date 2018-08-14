@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 0.3.1
+
+- Choose between domains and identifier (useful for other helpers)
+
 ## Version 0.3.0
 
 - Different enhancements on the country filter:
