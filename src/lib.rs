@@ -6,7 +6,7 @@
 //!
 //! # Example
 //! ```
-//! use nordselect::{Protocol, Servers};
+//! use nordselect::{CategoryType, Protocol, Servers};
 //!
 //! fn main() {
 //!     // Get data    
@@ -16,11 +16,13 @@
 //!     servers.filter_country("CA");
 //!     // Filter: only TCP compatible servers
 //!     servers.filter_protocol(nordselect::Protocol::Tcp);
+//!     // Filter: only standard servers
+//!     servers.filter_category(CategoryType::Standard);
 //!
 //!     // Sort the servers on load.
 //!     servers.sort_load();
 //!
-//!     assert!(servers.get_perfect_server().is_some());
+//!     assert!(servers.perfect_server().is_some());
 //! }
 //! ```
 
@@ -160,10 +162,7 @@ impl Server {
         self.ping = Some(sum / tries as usize);
         Ok(())
     }
-}
 
-/// Non-ping operations.
-impl Server {
     /// Returns the unique identifier of the server, without returning the full domain.
     ///
     /// This name is extracted from the `Server` everytime the function is called.
