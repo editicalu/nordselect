@@ -72,7 +72,7 @@ impl From<String> for CategoryType {
             "Double VPN" => CategoryType::Double,
             "Onion Over VPN" => CategoryType::Tor,
             "Obfuscated Servers" => CategoryType::Obfuscated,
-            "Dedicated IP servers" => CategoryType::Dedicated,
+            "Dedicated IP" => CategoryType::Dedicated,
             server_type => {
                 eprintln!("Warning: unknown server type: {}", server_type);
                 eprintln!("Please report an issue at https://github.com/editicalu/nordselect");
@@ -206,7 +206,7 @@ impl Servers {
                     .replace("Obfuscated Servers", "Obfuscated")
                     .replace("Double VPN", "Double")
                     .replace("Onion Over VPN", "Tor")
-                    .replace("Dedicated IP servers", "Dedicated"),
+                    .replace("Dedicated IP", "Dedicated"),
             )?,
         })
     }
