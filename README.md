@@ -1,34 +1,47 @@
 # NordSelect
 
-A fast library/CLI to find the perfect NordVPN server to connect to, based on given filters.
+A fast CLI and Rust crate to find the perfect NordVPN server to connect to, based on given filters.
 
 # Installation
 
-To install the `nordselect` CLI using [Cargo (Rust package manager)](https://www.rust-lang.org/en-US/install.html), enter `cargo install nordselect`. Because of the pinging functionality, you have to execute the following command:
-    sudo setcap cap_net_raw+ep ~/.cargo/bin/nordselect    # allow binary to send ping packets
+## Arch Linux
 
-You might require the following packages:
-    # Ubuntu
-    apt install autoconf automake libtool gcc
+If you're on Arch Linux, you can install the [`nordselect` AUR package](https://aur.archlinux.org/packages/nordselect).
 
-Official binaries (PPA for Ubuntu and AUR package for Arch Linux) will be available when nordselect is stabilized.
+## Using Cargo
+
+To install the `nordselect` CLI using [Cargo (Rust package manager)](https://www.rust-lang.org/en-US/install.html), enter `cargo install nordselect`.
+
+## Pinging
+
+Because of the pinging functionality, you have to execute the following command if you want to use the ping feature:
+
+    # allow binary to send ping packets
+    sudo setcap cap_net_raw+ep ~/.cargo/bin/nordselect
+
+Official binaries (PPA for Ubuntu and a binary AUR package) will be available when nordselect reaches the 1.0.0 release.
 
 # CLI Usage
 
-    nordselect [FILTER ..]
+    nordselect [FLAGS] [OPTIONS] [filter ..]
 
 Possible filters are:
 - A country (in [ISO 3166-1 alpha-2](//en.wikipedia.org/wiki/ISO_3166-1_alpha-2) format)
 - A protocol (`tcp`, `udp`)
 - A servertype (`standard`, `p2p`, `tor`, `double`, `obfuscated`, `dedicated`)
 
+For a full list of options and flags, run `nordselect -h`.
+
 ## Examples
 
     # I don't care, just pick a server
     nordselect
+    
     # A server in Latvia with P2P that supports p2p over tcp.
     nordselect lv tcp p2p
-    # A server that supports both Tor and double VPN
+
+    # A server that supports both Tor and double VPN.
+    # At the moment of writing, no such server is available.
     nordselect tor double
 
     # Use case: in combination with openvpn-nordvpn (Arch Linux):
@@ -37,16 +50,18 @@ Possible filters are:
 
 ## Library Usage
 
-The documentation of the library can be found at [docs.rs](https://docs.rs/crate/nordselect/).
+The documentation of the library can be found at [docs.rs](https://docs.rs/nordselect/).
 
 # Selection method
 
-To select a server without waiting too long, we use the following method:
+To select a server without waiting too long, we use the following method to find your preferred server.
 
-- Take all possible servers with the given filters.
-- Ping the 10 ones with the least load twice.
-- Take the best one.
+1. Download the list with all servers using the NordVPN API.
+2. Apply your filters on the received data.
+3. Sort the data on load.
+4. Pick the best one.
 
+When using `-p`, it will take the 10 servers with the least load and .
 If you think you have a better selection procedure, please let me know by opening an issue.
 
 # License
