@@ -25,12 +25,16 @@ Official binaries (PPA for Ubuntu and a binary AUR package) will be available wh
 
     nordselect [FLAGS] [OPTIONS] [filter ..]
 
+For a full list of options and flags, run `nordselect -h`.
+
+## Filters
+
 Possible filters are:
 - A country (in [ISO 3166-1 alpha-2](//en.wikipedia.org/wiki/ISO_3166-1_alpha-2) format)
 - A protocol (`tcp`, `udp`)
 - A servertype (`standard`, `p2p`, `tor`, `double`, `obfuscated`, `dedicated`)
 
-For a full list of options and flags, run `nordselect -h`.
+To see all filters, use `nordselect --filters`
 
 ## Examples
 
