@@ -34,6 +34,7 @@ extern crate oping;
 extern crate serde;
 extern crate serde_json;
 
+use filters::Filter;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
@@ -248,6 +249,10 @@ pub enum Protocol {
 
 /// All filters that can be applied.
 impl Servers {
+    pub fn apply_filter(&mut self, filter: &Filter) {
+        (&mut self.servers).retain(|server| filter.filter(server))
+    }
+
     /// Filters the servers on a certain category.
     pub fn filter_category(&mut self, category: CategoryType) {
         let category_struct = Category { name: category };
@@ -263,6 +268,7 @@ impl Servers {
     }
 
     /// Filters the servers on a certain country.
+    #[deprecated(since = "0.3.3", note = "Use the new filter module")]
     pub fn filter_country(&mut self, country: &str) {
         (&mut self.servers).retain(|server| server.flag == country)
     }
@@ -320,3 +326,5 @@ impl Servers {
         Ok(())
     }
 }
+
+pub mod filters;
