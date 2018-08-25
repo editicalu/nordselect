@@ -1,5 +1,16 @@
 # Changelog
 
+## Version 0.3.3
+
+- Filters and Sorters are now a Trait, allowing improved flexibility.
+- The README is rewritten to make it easier to get started.
+- The library is sorted in modules.
+
+## Version 0.3.2
+
+- Bugfix: breaking change in the NordVPN API.
+- Following Rust guidelines concering function naming.
+
 ## Version 0.3.1
 
 - Choose between domains and identifier (useful for other helpers)
