@@ -96,9 +96,8 @@ pub struct ProtocolFilter {
     protocol: Protocol,
 }
 
-impl ProtocolFilter {
-    /// Creates a new filter of the given protocol.
-    pub fn from_protocol(protocol: Protocol) -> ProtocolFilter {
+impl From<Protocol> for ProtocolFilter {
+    fn from(protocol: Protocol) -> ProtocolFilter {
         ProtocolFilter { protocol }
     }
 }
@@ -113,7 +112,23 @@ impl Filter for ProtocolFilter {
 }
 
 /// Filter that keeps servers with less load than a provided value.
-pub struct LoadFilter {}
+pub struct LoadFilter {
+    /// The maximal allowed load.
+    load: u8,
+}
+
+impl From<u8> for LoadFilter {
+    fn from(load: u8) -> LoadFilter {
+        LoadFilter { load }
+    }
+}
+
+impl Filter for LoadFilter {
+    fn filter(&self, server: &Server) -> bool {
+        use std;
+        server.load.cmp(&self.load) != std::cmp::Ordering::Greater
+    }
+}
 
 /// Filter that contains multiple Filter instances. This could be more efficient, as only servers fullfilling all requirements are kept.
 pub struct CombinedFilter {
