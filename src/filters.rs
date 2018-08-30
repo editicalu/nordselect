@@ -1,6 +1,6 @@
 //! The filters module consists of the Filter trait (used to implement filters) and several common inplementations of it.
 
-use super::Server;
+use super::{Protocol, Server};
 
 /// Way to minify the amount of available servers.
 pub trait Filter {
@@ -91,7 +91,26 @@ impl Filter for CountriesFilter {
 }
 
 /// Filter that keeps servers that accept a specific protocol.
-pub struct ProtocolFilter {}
+pub struct ProtocolFilter {
+    /// The protocol that should be filtered against.
+    protocol: Protocol,
+}
+
+impl ProtocolFilter {
+    /// Creates a new filter of the given protocol.
+    pub fn from_protocol(protocol: Protocol) -> ProtocolFilter {
+        ProtocolFilter { protocol }
+    }
+}
+
+impl Filter for ProtocolFilter {
+    fn filter(&self, server: &Server) -> bool {
+        match self.protocol {
+            Protocol::Tcp => server.features.openvpn_tcp,
+            Protocol::Udp => server.features.openvpn_udp,
+        }
+    }
+}
 
 /// Filter that keeps servers with less load than a provided value.
 pub struct LoadFilter {}
