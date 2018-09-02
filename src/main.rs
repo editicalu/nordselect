@@ -2,7 +2,7 @@ extern crate clap;
 extern crate nordselect;
 
 use nordselect::filters;
-use nordselect::{CategoryType, Protocol, Servers};
+use nordselect::{Protocol, ServerCategory, Servers};
 use std::collections::HashSet;
 
 fn main() {
@@ -159,32 +159,32 @@ fn main() {
 
     // Filtering Standard
     if standard_filter {
-        data.filter_category(CategoryType::Standard);
+        data.filter_category(ServerCategory::Standard);
     };
 
     // Filtering P2P
     if p2p_filter {
-        data.filter_category(CategoryType::P2P);
+        data.filter_category(ServerCategory::P2P);
     };
 
     // Filtering Tor/Onion
     if tor_filter {
-        data.filter_category(CategoryType::Tor);
+        data.filter_category(ServerCategory::Tor);
     };
 
     // Filtering Double
     if double_filter {
-        data.filter_category(CategoryType::Double);
+        data.filter_category(ServerCategory::Double);
     };
 
     // Filtering Obfuscated servers
     if obfuscated_filter {
-        data.filter_category(CategoryType::Obfuscated);
+        data.filter_category(ServerCategory::Obfuscated);
     };
 
     // Filtering Dedicated
     if dedicated_filter {
-        data.filter_category(CategoryType::Dedicated);
+        data.filter_category(ServerCategory::Dedicated);
     };
 
     // Filtering servers with TCP capacity
