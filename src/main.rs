@@ -154,7 +154,7 @@ fn main() {
 
     // Filtering countries
     if let Some(countries) = country_filter {
-        data.filter(&nordselect::filters::CountriesFilter::from(countries));
+        data.filter(&filters::CountriesFilter::from(countries));
     };
 
     // Filtering Standard
