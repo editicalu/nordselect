@@ -89,6 +89,20 @@ pub struct Features {
 }
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
+struct ApiServer {
+    /// The country this server is located in.
+    pub flag: String,
+    /// The domain of this server.
+    pub domain: String,
+    /// The current load on this server.
+    pub load: u8,
+    /// Categories this server is in.
+    pub categories: Vec<Category>,
+    /// Features of the server
+    pub features: Features,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Clone)]
 /// A server by NordVPN.
 pub struct Server {
     /// The country this server is located in.
@@ -98,10 +112,28 @@ pub struct Server {
     /// The current load on this server.
     pub load: u8,
     /// Categories this server is in.
-    categories: Vec<Category>,
+    pub categories: Vec<CategoryType>,
     /// Features of the server
     pub features: Features,
     pub ping: Option<usize>,
+}
+
+impl From<ApiServer> for Server {
+    fn from(api_server: ApiServer) -> Server {
+        Server {
+            flag: api_server.flag,
+            domain: api_server.domain,
+            load: api_server.load,
+            categories: Vec::from_iter(
+                api_server
+                    .categories
+                    .into_iter()
+                    .map(|server_type| server_type.name),
+            ),
+            features: api_server.features,
+            ping: None,
+        }
+    }
 }
 
 /// Ping operations
@@ -155,17 +187,22 @@ impl Servers {
     pub fn from_api() -> Result<Servers, Box<std::error::Error>> {
         let mut data = reqwest::get("https://api.nordvpn.com/server")?;
         let text = data.text()?;
+        let api_servers: Vec<ApiServer> = serde_json::from_str(
+            // TODO: find a better solution to these expensive replacements.
+            &text
+                .replace("Standard VPN servers", "Standard")
+                .replace("Obfuscated Servers", "Obfuscated")
+                .replace("Double VPN", "Double")
+                .replace("Onion Over VPN", "Tor")
+                .replace("Dedicated IP", "Dedicated"),
+        )?;
 
         Ok(Servers {
-            servers: serde_json::from_str(
-                // TODO: find a better solution to these expensive replacements.
-                &text
-                    .replace("Standard VPN servers", "Standard")
-                    .replace("Obfuscated Servers", "Obfuscated")
-                    .replace("Double VPN", "Double")
-                    .replace("Onion Over VPN", "Tor")
-                    .replace("Dedicated IP", "Dedicated"),
-            )?,
+            servers: Vec::from_iter(
+                api_servers
+                    .into_iter()
+                    .map(|api_server| Server::from(api_server)),
+            ),
         })
     }
 
@@ -206,8 +243,7 @@ impl Servers {
     /// Filters the servers on a certain category.
     #[deprecated(since = "0.3.3", note = "please use `CategoryFilter` instead")]
     pub fn filter_category(&mut self, category: CategoryType) {
-        let category_struct = Category { name: category };
-        (&mut self.servers).retain(|server| server.categories.contains(&category_struct));
+        (&mut self.servers).retain(|server| server.categories.contains(&category));
     }
 
     /// Filters the servers on a certain protocol.
