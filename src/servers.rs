@@ -89,6 +89,7 @@ pub struct Features {
 }
 
 #[derive(Debug, Deserialize)]
+/// The way servers are represented in the API response.
 struct ApiServer {
     /// The country this server is located in.
     pub flag: String,
