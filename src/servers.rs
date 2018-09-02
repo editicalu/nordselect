@@ -9,7 +9,7 @@ use std::iter::FromIterator;
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 /// The categories a Server can be in.
-pub enum CategoryType {
+pub enum ServerCategory {
     /// A standard VPN server
     Standard,
     /// A VPN server with P2P services allowed.
@@ -26,25 +26,25 @@ pub enum CategoryType {
     UnknownServer,
 }
 
-impl From<String> for CategoryType {
-    fn from(input: String) -> CategoryType {
+impl From<String> for ServerCategory {
+    fn from(input: String) -> ServerCategory {
         match input.as_ref() {
-            "Standard VPN servers" => CategoryType::Standard,
-            "P2P" => CategoryType::P2P,
-            "Double VPN" => CategoryType::Double,
-            "Onion Over VPN" => CategoryType::Tor,
-            "Obfuscated Servers" => CategoryType::Obfuscated,
-            "Dedicated IP" => CategoryType::Dedicated,
-            _ => CategoryType::UnknownServer,
+            "Standard VPN servers" => ServerCategory::Standard,
+            "P2P" => ServerCategory::P2P,
+            "Double VPN" => ServerCategory::Double,
+            "Onion Over VPN" => ServerCategory::Tor,
+            "Obfuscated Servers" => ServerCategory::Obfuscated,
+            "Dedicated IP" => ServerCategory::Dedicated,
+            _ => ServerCategory::UnknownServer,
         }
     }
 }
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
-/// The struct used to identify categories.
-struct Category {
+/// The struct used to identify categories, used in the API.
+struct ApiCategory {
     /// The name of the category (converted into a type)
-    pub name: CategoryType,
+    pub name: ServerCategory,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
@@ -88,7 +88,8 @@ pub struct Features {
     pub proxy_ssl_cybersec: bool,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize)]
+/// The way servers are represented in the API response.
 struct ApiServer {
     /// The country this server is located in.
     pub flag: String,
@@ -97,12 +98,12 @@ struct ApiServer {
     /// The current load on this server.
     pub load: u8,
     /// Categories this server is in.
-    pub categories: Vec<Category>,
+    pub categories: Vec<ApiCategory>,
     /// Features of the server
     pub features: Features,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 /// A server by NordVPN.
 pub struct Server {
     /// The country this server is located in.
@@ -112,7 +113,7 @@ pub struct Server {
     /// The current load on this server.
     pub load: u8,
     /// Categories this server is in.
-    pub categories: Vec<CategoryType>,
+    pub categories: Vec<ServerCategory>,
     /// Features of the server
     pub features: Features,
     pub ping: Option<usize>,
@@ -242,7 +243,7 @@ pub enum Protocol {
 impl Servers {
     /// Filters the servers on a certain category.
     #[deprecated(since = "0.3.3", note = "please use `CategoryFilter` instead")]
-    pub fn filter_category(&mut self, category: CategoryType) {
+    pub fn filter_category(&mut self, category: ServerCategory) {
         (&mut self.servers).retain(|server| server.categories.contains(&category));
     }
 

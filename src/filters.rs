@@ -1,6 +1,6 @@
 //! The filters module consists of the Filter trait (used to implement filters) and several common inplementations of it.
 
-use super::{Protocol, Server};
+use super::{Protocol, Server, ServerCategory};
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
@@ -177,5 +177,21 @@ impl Filter for CombinedFilter {
             .filter(|filter| filter.filter(server))
             .next()
             .is_some()
+    }
+}
+
+pub struct CategoryFilter {
+    category: ServerCategory,
+}
+
+impl From<ServerCategory> for CategoryFilter {
+    fn from(category: ServerCategory) -> CategoryFilter {
+        CategoryFilter { category }
+    }
+}
+
+impl Filter for CategoryFilter {
+    fn filter(&self, server: &Server) -> bool {
+        server.categories.contains(&self.category)
     }
 }
