@@ -88,7 +88,7 @@ pub struct Features {
     pub proxy_ssl_cybersec: bool,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize)]
 struct ApiServer {
     /// The country this server is located in.
     pub flag: String,
@@ -102,7 +102,7 @@ struct ApiServer {
     pub features: Features,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 /// A server by NordVPN.
 pub struct Server {
     /// The country this server is located in.
