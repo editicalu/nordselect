@@ -1,6 +1,7 @@
 extern crate clap;
 extern crate nordselect;
 
+use nordselect::filters;
 use nordselect::{CategoryType, Protocol, Servers};
 use std::collections::HashSet;
 
@@ -188,12 +189,12 @@ fn main() {
 
     // Filtering servers with TCP capacity
     if tcp_filter {
-        data.filter_protocol(Protocol::Tcp);
+        data.filter(&filters::ProtocolFilter::from(Protocol::Tcp));
     }
 
     // Filtering servers with UDP capacity
     if udp_filter {
-        data.filter_protocol(Protocol::Udp);
+        data.filter(&filters::ProtocolFilter::from(Protocol::Udp));
     }
 
     // Sort the data on load
