@@ -159,32 +159,32 @@ fn main() {
 
     // Filtering Standard
     if standard_filter {
-        data.filter_category(ServerCategory::Standard);
+        data.filter(&filters::CategoryFilter::from(ServerCategory::Standard));
     };
 
     // Filtering P2P
     if p2p_filter {
-        data.filter_category(ServerCategory::P2P);
+        data.filter(&filters::CategoryFilter::from(ServerCategory::P2P));
     };
 
     // Filtering Tor/Onion
     if tor_filter {
-        data.filter_category(ServerCategory::Tor);
+        data.filter(&filters::CategoryFilter::from(ServerCategory::Tor));
     };
 
     // Filtering Double
     if double_filter {
-        data.filter_category(ServerCategory::Double);
+        data.filter(&filters::CategoryFilter::from(ServerCategory::Double));
     };
 
     // Filtering Obfuscated servers
     if obfuscated_filter {
-        data.filter_category(ServerCategory::Obfuscated);
+        data.filter(&filters::CategoryFilter::from(ServerCategory::Obfuscated));
     };
 
     // Filtering Dedicated
     if dedicated_filter {
-        data.filter_category(ServerCategory::Dedicated);
+        data.filter(&filters::CategoryFilter::from(ServerCategory::Dedicated));
     };
 
     // Filtering servers with TCP capacity
