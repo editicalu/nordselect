@@ -3,6 +3,7 @@ use reqwest;
 use serde_json;
 use std;
 
+use filters::Filter;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
@@ -88,19 +89,51 @@ pub struct Features {
 }
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
-/// A server by NordVPN.
-pub struct Server {
+struct ApiServer {
     /// The country this server is located in.
-    flag: String,
+    pub flag: String,
     /// The domain of this server.
     pub domain: String,
     /// The current load on this server.
-    load: u8,
+    pub load: u8,
     /// Categories this server is in.
-    categories: Vec<Category>,
+    pub categories: Vec<Category>,
     /// Features of the server
-    features: Features,
-    ping: Option<usize>,
+    pub features: Features,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Clone)]
+/// A server by NordVPN.
+pub struct Server {
+    /// The country this server is located in.
+    pub flag: String,
+    /// The domain of this server.
+    pub domain: String,
+    /// The current load on this server.
+    pub load: u8,
+    /// Categories this server is in.
+    pub categories: Vec<CategoryType>,
+    /// Features of the server
+    pub features: Features,
+    pub ping: Option<usize>,
+}
+
+impl From<ApiServer> for Server {
+    fn from(api_server: ApiServer) -> Server {
+        Server {
+            flag: api_server.flag,
+            domain: api_server.domain,
+            load: api_server.load,
+            categories: Vec::from_iter(
+                api_server
+                    .categories
+                    .into_iter()
+                    .map(|server_type| server_type.name),
+            ),
+            features: api_server.features,
+            ping: None,
+        }
+    }
 }
 
 /// Ping operations
@@ -154,17 +187,22 @@ impl Servers {
     pub fn from_api() -> Result<Servers, Box<std::error::Error>> {
         let mut data = reqwest::get("https://api.nordvpn.com/server")?;
         let text = data.text()?;
+        let api_servers: Vec<ApiServer> = serde_json::from_str(
+            // TODO: find a better solution to these expensive replacements.
+            &text
+                .replace("Standard VPN servers", "Standard")
+                .replace("Obfuscated Servers", "Obfuscated")
+                .replace("Double VPN", "Double")
+                .replace("Onion Over VPN", "Tor")
+                .replace("Dedicated IP", "Dedicated"),
+        )?;
 
         Ok(Servers {
-            servers: serde_json::from_str(
-                // TODO: find a better solution to these expensive replacements.
-                &text
-                    .replace("Standard VPN servers", "Standard")
-                    .replace("Obfuscated Servers", "Obfuscated")
-                    .replace("Double VPN", "Double")
-                    .replace("Onion Over VPN", "Tor")
-                    .replace("Dedicated IP", "Dedicated"),
-            )?,
+            servers: Vec::from_iter(
+                api_servers
+                    .into_iter()
+                    .map(|api_server| Server::from(api_server)),
+            ),
         })
     }
 
@@ -179,10 +217,7 @@ impl Servers {
 
     #[deprecated(since = "0.3.2", note = "please use `perfect_server` instead")]
     pub fn get_perfect_server(&self) -> Option<Server> {
-        match self.servers.get(0) {
-            Some(x) => Some(x.clone()),
-            None => None,
-        }
+        self.perfect_server()
     }
 
     /// Returns the perfect server. This should be called when the filters are applied.
@@ -206,12 +241,13 @@ pub enum Protocol {
 /// All filters that can be applied.
 impl Servers {
     /// Filters the servers on a certain category.
+    #[deprecated(since = "0.3.3", note = "please use `CategoryFilter` instead")]
     pub fn filter_category(&mut self, category: CategoryType) {
-        let category_struct = Category { name: category };
-        (&mut self.servers).retain(|server| server.categories.contains(&category_struct));
+        (&mut self.servers).retain(|server| server.categories.contains(&category));
     }
 
     /// Filters the servers on a certain protocol.
+    #[deprecated(since = "0.3.3", note = "please use `ProtocolFilter` instead")]
     pub fn filter_protocol(&mut self, protocol: Protocol) {
         match protocol {
             Protocol::Tcp => (&mut self.servers).retain(|server| server.features.openvpn_tcp),
@@ -220,13 +256,20 @@ impl Servers {
     }
 
     /// Filters the servers on a certain country.
+    #[deprecated(since = "0.3.3", note = "please use `CountryFilter` instead")]
     pub fn filter_country(&mut self, country: &str) {
         (&mut self.servers).retain(|server| server.flag == country)
     }
 
     /// Filters the servers on a set of countries. It retains servers from all these countries.
+    #[deprecated(since = "0.3.3", note = "please use `CountriesFilter` instead")]
     pub fn filter_countries(&mut self, countries: &HashSet<String>) {
         (&mut self.servers).retain(|server| countries.contains(&server.flag))
+    }
+
+    /// Applies the given filter on this serverlist.
+    pub fn filter(&mut self, filter: &Filter) {
+        (&mut self.servers).retain(|server| filter.filter(&server))
     }
 
     /// Sorts the servers on their load.
