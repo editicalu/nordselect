@@ -34,12 +34,6 @@ extern crate oping;
 extern crate serde;
 extern crate serde_json;
 
-// To be deleted when the 'flags' branch is merged.
-pub const EU: [&str; 27] = [
-    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV",
-    "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
-];
-
 pub mod filters;
 pub mod servers;
 

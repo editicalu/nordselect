@@ -66,6 +66,8 @@ fn main() {
         }
     };
 
+    let regions = nordselect::filters::CountriesFilter::available_regions();
+
     if matches.is_present("list_filters") {
         // Show protocols
         println!("PROTOCOLS:\ttcp, udp");
@@ -85,7 +87,13 @@ fn main() {
         println!();
 
         // Show regions
-        println!("REGIONS:\teu");
+        print!("REGIONS:\t");
+        let mut iter = regions.iter();
+        if let Some(flag) = iter.next() {
+            print!("{}", flag.to_lowercase());
+            iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
+            println!();
+        }
         std::process::exit(0);
     }
 
@@ -117,24 +125,21 @@ fn main() {
                 "obfuscated" => obfuscated_filter = true,
                 "tcp" => tcp_filter = true,
                 "udp" => udp_filter = true,
-                "eu" => {
-                    if country_filter.is_none() {
-                        country_filter = Some(HashSet::with_capacity(nordselect::EU.len()));
-                    }
-                    for &country in nordselect::EU.iter() {
-                        country_filter
-                            .as_mut()
-                            .unwrap()
-                            .insert(String::from(country));
-                    }
-                }
                 _ => {
                     let upper = filter.to_uppercase();
-                    if flags.contains(upper.as_ref() as &str) {
+                    if flags.contains(&upper.as_ref()) {
                         if country_filter.is_none() {
                             country_filter = Some(HashSet::with_capacity(1));
                         }
                         country_filter.as_mut().unwrap().insert(upper);
+                    } else if regions.contains(&upper.as_ref()) {
+                        if country_filter.is_none() {
+                            country_filter = Some(HashSet::new());
+                        }
+                        regions.iter().for_each(|flag| {
+                            country_filter.as_mut().unwrap().insert(String::from(*flag));
+                            ()
+                        });
                     } else {
                         eprintln!("Error: unknown filter: \"{}\"", filter);
                         std::process::exit(1);
@@ -147,8 +152,8 @@ fn main() {
     // Filter servers that are not required.
 
     // Filtering countries
-    if country_filter.is_some() {
-        data.filter_countries(&country_filter.unwrap());
+    if let Some(countries) = country_filter {
+        data.filter(&nordselect::filters::CountriesFilter::from(countries));
     };
 
     // Filtering Standard

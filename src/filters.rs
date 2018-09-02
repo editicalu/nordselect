@@ -1,6 +1,8 @@
 //! The filters module consists of the Filter trait (used to implement filters) and several common inplementations of it.
 
 use super::{Protocol, Server};
+use std::collections::HashSet;
+use std::iter::FromIterator;
 
 /// Way to minify the amount of available servers.
 pub trait Filter {
@@ -29,7 +31,7 @@ impl Filter for CountryFilter {
 
 /// Filter that keeps servers from any of the provided countries.
 pub struct CountriesFilter {
-    countries: Vec<String>,
+    countries: HashSet<String>,
 }
 
 /// Region operations
@@ -38,35 +40,37 @@ impl CountriesFilter {
     pub fn from_region(region: &str) -> Option<CountriesFilter> {
         match region.to_lowercase().as_ref() {
             "eu" | "ею" => Some(CountriesFilter {
-                countries: vec![
-                    String::from("AT"),
-                    String::from("BE"),
-                    String::from("BG"),
-                    String::from("HR"),
-                    String::from("CY"),
-                    String::from("CZ"),
-                    String::from("DK"),
-                    String::from("EE"),
-                    String::from("FI"),
-                    String::from("FR"),
-                    String::from("DE"),
-                    String::from("GR"),
-                    String::from("HU"),
-                    String::from("IE"),
-                    String::from("IT"),
-                    String::from("LV"),
-                    String::from("LT"),
-                    String::from("LU"),
-                    String::from("MT"),
-                    String::from("NL"),
-                    String::from("PL"),
-                    String::from("PT"),
-                    String::from("RO"),
-                    String::from("SK"),
-                    String::from("SI"),
-                    String::from("ES"),
-                    String::from("SE"),
-                ],
+                countries: HashSet::from_iter(
+                    vec![
+                        String::from("AT"),
+                        String::from("BE"),
+                        String::from("BG"),
+                        String::from("HR"),
+                        String::from("CY"),
+                        String::from("CZ"),
+                        String::from("DK"),
+                        String::from("EE"),
+                        String::from("FI"),
+                        String::from("FR"),
+                        String::from("DE"),
+                        String::from("GR"),
+                        String::from("HU"),
+                        String::from("IE"),
+                        String::from("IT"),
+                        String::from("LV"),
+                        String::from("LT"),
+                        String::from("LU"),
+                        String::from("MT"),
+                        String::from("NL"),
+                        String::from("PL"),
+                        String::from("PT"),
+                        String::from("RO"),
+                        String::from("SK"),
+                        String::from("SI"),
+                        String::from("ES"),
+                        String::from("SE"),
+                    ].into_iter(),
+                ),
             }),
             _ => None,
         }
@@ -78,8 +82,8 @@ impl CountriesFilter {
     }
 }
 
-impl From<Vec<String>> for CountriesFilter {
-    fn from(countries: Vec<String>) -> CountriesFilter {
+impl From<HashSet<String>> for CountriesFilter {
+    fn from(countries: HashSet<String>) -> CountriesFilter {
         CountriesFilter { countries }
     }
 }
@@ -132,6 +136,7 @@ impl Filter for LoadFilter {
 
 /// Filter that contains multiple Filter instances. This could be more efficient, as only servers fullfilling all requirements are kept.
 pub struct CombinedFilter {
+    // The actual filters
     filters: Vec<Box<Filter>>,
 }
 

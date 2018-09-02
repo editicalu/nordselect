@@ -3,6 +3,7 @@ use reqwest;
 use serde_json;
 use std;
 
+use filters::Filter;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
@@ -203,12 +204,14 @@ pub enum Protocol {
 /// All filters that can be applied.
 impl Servers {
     /// Filters the servers on a certain category.
+    #[deprecated(since = "0.3.3", note = "please use `CategoryFilter` instead")]
     pub fn filter_category(&mut self, category: CategoryType) {
         let category_struct = Category { name: category };
         (&mut self.servers).retain(|server| server.categories.contains(&category_struct));
     }
 
     /// Filters the servers on a certain protocol.
+    #[deprecated(since = "0.3.3", note = "please use `ProtocolFilter` instead")]
     pub fn filter_protocol(&mut self, protocol: Protocol) {
         match protocol {
             Protocol::Tcp => (&mut self.servers).retain(|server| server.features.openvpn_tcp),
@@ -217,13 +220,20 @@ impl Servers {
     }
 
     /// Filters the servers on a certain country.
+    #[deprecated(since = "0.3.3", note = "please use `CountryFilter` instead")]
     pub fn filter_country(&mut self, country: &str) {
         (&mut self.servers).retain(|server| server.flag == country)
     }
 
     /// Filters the servers on a set of countries. It retains servers from all these countries.
+    #[deprecated(since = "0.3.3", note = "please use `CountriesFilter` instead")]
     pub fn filter_countries(&mut self, countries: &HashSet<String>) {
         (&mut self.servers).retain(|server| countries.contains(&server.flag))
+    }
+
+    /// Applies the given filter on this serverlist.
+    pub fn filter(&mut self, filter: &Filter) {
+        (&mut self.servers).retain(|server| filter.filter(&server))
     }
 
     /// Sorts the servers on their load.
