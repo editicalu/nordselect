@@ -44,7 +44,7 @@ impl From<String> for ServerCategory {
 /// The struct used to identify categories, used in the API.
 struct ApiCategory {
     /// The name of the category (converted into a type)
-    pub name: ServerCategory,
+    pub name: String,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
@@ -129,7 +129,7 @@ impl From<ApiServer> for Server {
                 api_server
                     .categories
                     .into_iter()
-                    .map(|server_type| server_type.name),
+                    .map(|server_type| ServerCategory::from(server_type.name)),
             ),
             features: api_server.features,
             ping: None,
@@ -190,12 +190,7 @@ impl Servers {
         let text = data.text()?;
         let api_servers: Vec<ApiServer> = serde_json::from_str(
             // TODO: find a better solution to these expensive replacements.
-            &text
-                .replace("Standard VPN servers", "Standard")
-                .replace("Obfuscated Servers", "Obfuscated")
-                .replace("Double VPN", "Double")
-                .replace("Onion Over VPN", "Tor")
-                .replace("Dedicated IP", "Dedicated"),
+            &text,
         )?;
 
         Ok(Servers {
