@@ -36,6 +36,7 @@ extern crate serde_json;
 
 pub mod filters;
 pub mod servers;
+pub mod sorters;
 
 pub use servers::Protocol;
 pub use servers::Server;

@@ -4,10 +4,12 @@ use serde_json;
 use std;
 
 use filters::Filter;
+use sorters::Sorter;
 use std::collections::HashSet;
+use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
 
-#[derive(Debug, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Clone)]
 /// The categories a Server can be in.
 pub enum ServerCategory {
     /// A standard VPN server
@@ -47,7 +49,7 @@ struct ApiCategory {
     pub name: String,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Clone)]
+#[derive(Debug, Deserialize, PartialEq, Eq, Clone)]
 /// All protocols and other features a Server can have.
 pub struct Features {
     /// Support for IKEv2 protocol.
@@ -103,7 +105,7 @@ struct ApiServer {
     pub features: Features,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 /// A server by NordVPN.
 pub struct Server {
     /// The country this server is located in.
@@ -116,7 +118,15 @@ pub struct Server {
     pub categories: Vec<ServerCategory>,
     /// Features of the server
     pub features: Features,
+    /// Result of the ping test.
+    #[deprecated(since = "0.3.3", note = "please use `LoadSorter` instead")]
     pub ping: Option<usize>,
+}
+
+impl Hash for Server {
+    fn hash<H: Hasher>(&self, hasher: &mut H) {
+        self.domain.hash(hasher);
+    }
 }
 
 impl From<ApiServer> for Server {
@@ -188,10 +198,7 @@ impl Servers {
     pub fn from_api() -> Result<Servers, Box<std::error::Error>> {
         let mut data = reqwest::get("https://api.nordvpn.com/server")?;
         let text = data.text()?;
-        let api_servers: Vec<ApiServer> = serde_json::from_str(
-            // TODO: find a better solution to these expensive replacements.
-            &text,
-        )?;
+        let api_servers: Vec<ApiServer> = serde_json::from_str(&text)?;
 
         Ok(Servers {
             servers: Vec::from_iter(
@@ -268,14 +275,21 @@ impl Servers {
         (&mut self.servers).retain(|server| filter.filter(&server))
     }
 
+    #[deprecated(since = "0.3.3", note = "please use `LoadSorter` instead")]
     /// Sorts the servers on their load.
     pub fn sort_load(&mut self) {
         (&mut self.servers).sort_unstable_by(|x, y| x.load.cmp(&y.load));
     }
 
+    #[deprecated(since = "0.3.3", note = "please use `PingSorter` instead")]
     /// Sorts servers on ping result. Should only be called when all servers were able to ping.
     fn sort_ping(&mut self) {
         (&mut self.servers).sort_unstable_by(|x, y| x.ping.unwrap().cmp(&y.ping.unwrap()));
+    }
+
+    /// Sorts the servers using a Sorter. The sort is unstable.
+    pub fn sort(&mut self, sorter: &Sorter) {
+        (&mut self.servers).sort_unstable_by(|x, y| sorter.sort(x, y));
     }
 
     /// Removes all but the `max` best servers at the moment. Does nothing if there are less
@@ -293,6 +307,7 @@ impl Servers {
     /// - `tries`: how many tries should be done. The average ping is taken.
     /// - `parallel`: whether the tests should be run in parallel. This will make tests go faster,
     ///   but less accurate.
+    #[deprecated(since = "0.3.3", note = "please use `PingSorter` instead")]
     pub fn benchmark_ping(
         &mut self,
         servers: usize,

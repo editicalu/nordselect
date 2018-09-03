@@ -198,7 +198,7 @@ fn main() {
     }
 
     // Sort the data on load
-    data.sort_load();
+    data.sort(&nordselect::sorters::LoadSorter);
 
     // Perform ping test if required
     if matches.is_present("ping") {
