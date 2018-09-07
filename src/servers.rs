@@ -1,3 +1,4 @@
+//! Data structures and methods to interact with the NordVPN servers.
 use oping;
 use reqwest;
 use serde_json;
@@ -119,7 +120,10 @@ pub struct Server {
     /// Features of the server
     pub features: Features,
     /// Result of the ping test.
-    #[deprecated(since = "0.3.3", note = "please use `LoadSorter` instead")]
+    #[deprecated(
+        since = "0.3.3",
+        note = "Ping tests no longer belong in the Server. Please use `LoadSorter` instead."
+    )]
     pub ping: Option<usize>,
 }
 
@@ -150,6 +154,10 @@ impl From<ApiServer> for Server {
 /// Ping operations
 impl Server {
     /// Ping per instance.
+    #[deprecated(
+        since = "0.3.3",
+        note = "Ping tests no longer belong in the Server. Please use `LoadSorter` instead."
+    )]
     fn ping_single(&mut self, tries: usize) -> Result<(), Box<std::error::Error>> {
         let sum: usize = {
             let mut sum = 0usize;
@@ -189,7 +197,7 @@ impl Server {
 /// A list of individual servers.
 pub struct Servers {
     /// The actual servers
-    servers: Vec<Server>,
+    pub servers: Vec<Server>,
 }
 
 /// Functions to build and read data from the Servers.
@@ -312,18 +320,13 @@ impl Servers {
         &mut self,
         servers: usize,
         tries: usize,
-        parallel: bool,
+        _parallel: bool,
     ) -> Result<(), Box<std::error::Error>> {
         // Omit other servers
         self.cut(servers);
-
-        if parallel {
-            // TODO
-        } else {
-            for mut server in &mut self.servers {
-                (&mut server).ping_single(tries)?;
-            }
-        };
+        for mut server in &mut self.servers {
+            (&mut server).ping_single(tries)?;
+        }
 
         // No errors -> sort
         self.sort_ping();

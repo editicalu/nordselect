@@ -52,9 +52,17 @@ To see all filters, use `nordselect --filters`
     # https://github.com/nstinus/nordvpn
     nordvpn start `nordselect ca`
 
-## Library Usage
+# Library Usage
 
 The documentation of the library can be found at [docs.rs](https://docs.rs/nordselect/).
+
+**Warning**: deprecated code shall be removed in the version 1.0.0 release.
+
+# Development
+
+The application is in development. If you encouter a bug, please open an issue describing how the bug occured or open a PR.
+
+New features are not planned for now, but feel free to open issues to discuss them.
 
 # Selection method
 
@@ -65,7 +73,7 @@ To select a server without waiting too long, we use the following method to find
 3. Sort the data on load.
 4. Pick the best one.
 
-When using `-p`, it will take the 10 servers with the least load and .
+When using `-p` or `-s`, it will take the 10 servers with the least load and compare their ping values.
 If you think you have a better selection procedure, please let me know by opening an issue.
 
 # License

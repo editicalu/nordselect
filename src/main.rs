@@ -13,10 +13,17 @@ fn main() {
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
         .arg(
-            Arg::with_name("ping")
+            Arg::with_name("multi_ping")
                 .short("p")
                 .long("ping")
-                .help("Use ping to find the best server")
+                .help("Use ping tests with simultaneous pings")
+                .takes_value(false),
+        )
+        .arg(
+            Arg::with_name("single_ping")
+                .short("s")
+                .long("sping")
+                .help("Use ping tests and execute pings linear")
                 .takes_value(false),
         )
         .arg(
@@ -55,7 +62,7 @@ fn main() {
                 .required(false)
                 .multiple(true)
                 .index(1)
-                .help("Any restriction put on the server. This can be a country ('us'), a protocol ('tcp;) or a type of server ('p2p'). See --filters"),
+                .help("Any restriction put on the server. This can be a country ('us'), a protocol ('tcp') or a type of server ('p2p'). See --filters"),
         )
         .get_matches();
 
@@ -197,47 +204,76 @@ fn main() {
         data.filter(&filters::ProtocolFilter::from(Protocol::Udp));
     }
 
-    // Sort the data on load
-    data.sort(&nordselect::sorters::LoadSorter);
+    let mut should_sort = true;
 
     // Perform ping test if required
-    if matches.is_present("ping") {
-        // TODO: avoid crash when no integer
-        let tries: usize = matches
-            .value_of("tries")
-            .unwrap()
-            .parse()
-            .expect("No valid integer");
+    let s_ping = matches.is_present("single_ping");
+    let m_ping = matches.is_present("multi_ping");
+    if s_ping || m_ping {
+        let tries_opt = matches.value_of("tries").unwrap().parse();
+        if let Err(err) = tries_opt {
+            eprintln!("Could not read tries of pings: {}", err);
 
-        // TODO: avoid crash when no integer
-        let amount: usize = matches
-            .value_of("amount")
-            .unwrap()
-            .parse()
-            .expect("No valid integer");
-
-        if let Err(x) = data.benchmark_ping(amount, tries, false) {
-            eprintln!("An error occured when pinging: {}", x);
-            eprintln!("Results will not include ping results");
-
-            match x.to_string().as_str() {
-                "oping::PingError::LibOpingError: Operation not permitted" => {
-                    eprintln!("");
-                    eprintln!(
-                        "This error means that you did not give permission to nordselect to ping."
-                    );
-                    eprintln!("More details can be found at https://github.com/cfallin/rust-oping");
-                    eprintln!("Hint: to solve this, execute the following command (as root):");
-                    eprintln!(
-                        "\tsetcap cap_net_raw+ep {}",
-                        std::env::args().next().unwrap()
-                    );
-                }
-                _ => {}
-            }
-
-            eprintln!("");
+            std::process::exit(1);
         }
+
+        let amount_opt = matches.value_of("amount").unwrap().parse();
+        if let Err(err) = amount_opt {
+            eprintln!("Could not read amount of pings: {}", err);
+
+            std::process::exit(1);
+        }
+
+        let amount = amount_opt.unwrap();
+        let tries = tries_opt.unwrap();
+
+        data.cut(amount);
+
+        match {
+            if s_ping {
+                nordselect::sorters::PingSorter::ping_single(&data, tries)
+            } else {
+                nordselect::sorters::PingSorter::ping_multi(&data, tries)
+            }
+        } {
+            Ok(sorter) => {
+                data.sort(&sorter);
+                should_sort = false;
+            }
+            Err(error) => {
+                eprintln!("An error occured when pinging: {}", error);
+                eprintln!("Results will not include ping results");
+
+                match error.to_string().as_str() {
+                    "oping::PingError::LibOpingError: Operation not permitted" => {
+                        eprintln!("");
+                        eprintln!(
+                            "This error means that you did not give permission to nordselect to ping."
+                        );
+                        eprintln!(
+                            "More details can be found at https://github.com/cfallin/rust-oping"
+                        );
+                        if let Ok(exe) = std::env::current_exe() {
+                            if cfg!(unix) {
+                                eprintln!("Hint: to solve this on Linux, execute the following command (as root):");
+                                eprintln!("\tsetcap cap_net_raw+ep {:#?}", exe);
+                            } else if cfg!(windows) {
+                                eprintln!("Hint: ping has not been tested on Windows. Consider using something else.");
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+
+                eprintln!("");
+
+                should_sort = true;
+            }
+        }
+    }
+
+    if should_sort {
+        data.sort(&nordselect::sorters::LoadSorter);
     }
 
     // Print the ideal server, if found.
