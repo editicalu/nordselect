@@ -140,11 +140,13 @@ fn main() {
                             country_filter = Some(HashSet::with_capacity(1));
                         }
                         country_filter.as_mut().unwrap().insert(upper);
-                    } else if regions.contains(&upper.as_ref()) {
+                    } else if let Some(region_countries) =
+                        nordselect::filters::CountriesFilter::region_countries(&upper.as_ref())
+                    {
                         if country_filter.is_none() {
                             country_filter = Some(HashSet::new());
                         }
-                        regions.iter().for_each(|flag| {
+                        region_countries.iter().for_each(|flag| {
                             country_filter.as_mut().unwrap().insert(String::from(*flag));
                             ()
                         });

@@ -41,44 +41,29 @@ impl CountriesFilter {
         match region.to_lowercase().as_ref() {
             "eu" | "ею" => Some(CountriesFilter {
                 countries: HashSet::from_iter(
-                    vec![
-                        String::from("AT"),
-                        String::from("BE"),
-                        String::from("BG"),
-                        String::from("HR"),
-                        String::from("CY"),
-                        String::from("CZ"),
-                        String::from("DK"),
-                        String::from("EE"),
-                        String::from("FI"),
-                        String::from("FR"),
-                        String::from("DE"),
-                        String::from("GR"),
-                        String::from("HU"),
-                        String::from("IE"),
-                        String::from("IT"),
-                        String::from("LV"),
-                        String::from("LT"),
-                        String::from("LU"),
-                        String::from("MT"),
-                        String::from("NL"),
-                        String::from("PL"),
-                        String::from("PT"),
-                        String::from("RO"),
-                        String::from("SK"),
-                        String::from("SI"),
-                        String::from("ES"),
-                        String::from("SE"),
-                    ].into_iter(),
+                    Self::region_countries("EU")
+                        .unwrap()
+                        .iter()
+                        .map(|s| String::from(*s)),
                 ),
             }),
             _ => None,
         }
     }
 
-    /// Returns regions that can be used
+    /// Returns regions that can be used.
     pub fn available_regions() -> Vec<&'static str> {
-        vec!["eu", "ею"]
+        vec!["EU", "ЕЮ"]
+    }
+
+    pub fn region_countries(region: &str) -> Option<&'static [&'static str]> {
+        match region.as_ref() {
+            "EU" | "ЕЮ" => Some(&[
+                "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
+                "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+            ]),
+            _ => None,
+        }
     }
 }
 
