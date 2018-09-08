@@ -5,10 +5,9 @@ use nordselect::filters;
 use nordselect::{Protocol, ServerCategory, Servers};
 use std::collections::HashSet;
 
-fn main() {
-    // Parse CLI args
+fn parse_cli_args<'a>() -> clap::ArgMatches<'a> {
     use clap::{App, Arg};
-    let matches = App::new("NordSelect")
+    App::new("NordSelect")
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
         .about(env!("CARGO_PKG_DESCRIPTION"))
@@ -64,148 +63,136 @@ fn main() {
                 .index(1)
                 .help("Any restriction put on the server. This can be a country ('us'), a protocol ('tcp') or a type of server ('p2p'). See --filters"),
         )
-        .get_matches();
+        .get_matches()
+}
 
-    let mut data = match Servers::from_api() {
-        Ok(x) => x,
-        Err(x) => {
-            eprintln!("Could not download data: {}", x);
-            std::process::exit(1);
-        }
-    };
+fn show_available_filters(data: &Servers) {
+    // Show protocols
+    println!("PROTOCOLS:\ttcp, udp");
+    // Show server types
+    println!("SERVERS:\tstandard, dedicated, double, obfuscated, p2p, tor");
 
-    let regions = nordselect::filters::CountriesFilter::available_regions();
+    // Show countries
+    let mut flags: Vec<String> = data.flags().iter().map(|&x| x.to_lowercase()).collect();
+    flags.sort_unstable();
+    let flags = flags;
 
-    if matches.is_present("list_filters") {
-        // Show protocols
-        println!("PROTOCOLS:\ttcp, udp");
-        // Show server types
-        println!("SERVERS:\tstandard, dedicated, double, obfuscated, p2p, tor");
+    let mut iter = flags.iter();
+    if let Some(flag) = iter.next() {
+        print!("COUNTRIES:\t{}", flag.to_lowercase());
+        iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
+    }
+    println!();
 
-        // Show countries
-        let mut flags: Vec<String> = data.flags().iter().map(|&x| x.to_lowercase()).collect();
-        flags.sort_unstable();
-        let flags = flags;
-
-        let mut iter = flags.iter();
-        if let Some(flag) = iter.next() {
-            print!("COUNTRIES:\t{}", flag.to_lowercase());
-            iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
-        }
+    // Show regions
+    print!("REGIONS:\t");
+    let mut iter = nordselect::filters::CountriesFilter::available_regions().into_iter();
+    if let Some(flag) = iter.next() {
+        print!("{}", flag.to_lowercase());
+        iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
         println!();
-
-        // Show regions
-        print!("REGIONS:\t");
-        let mut iter = regions.iter();
-        if let Some(flag) = iter.next() {
-            print!("{}", flag.to_lowercase());
-            iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
-            println!();
-        }
-        std::process::exit(0);
     }
+}
 
-    // Check whether filters were applied
-    // Detect applied filters
-    let mut country_filter: Option<HashSet<String>> = None;
-    let mut standard_filter = false;
-    let mut p2p_filter = false;
-    let mut double_filter = false;
-    let mut dedicated_filter = false;
-    let mut tor_filter = false;
-    let mut obfuscated_filter = false;
-    let mut tcp_filter = false;
-    let mut udp_filter = false;
-    {
-        // Parse which countries are in the data
-        let flags = data.flags();
+fn parse_filters(cli_filters: clap::Values, data: &Servers) -> PossibleFilters {
+    // Parse which countries are in the data
+    let flags = data.flags();
 
-        for filter in matches
-            .values_of("filter")
-            .unwrap_or(clap::Values::default())
-        {
-            match filter {
-                "p2p" => p2p_filter = true,
-                "standard" => standard_filter = true,
-                "double" => double_filter = true,
-                "dedicated" => dedicated_filter = true,
-                "tor" => tor_filter = true,
-                "obfuscated" => obfuscated_filter = true,
-                "tcp" => tcp_filter = true,
-                "udp" => udp_filter = true,
-                _ => {
-                    let upper = filter.to_uppercase();
-                    if flags.contains(&upper.as_ref()) {
-                        if country_filter.is_none() {
-                            country_filter = Some(HashSet::with_capacity(1));
-                        }
-                        country_filter.as_mut().unwrap().insert(upper);
-                    } else if let Some(region_countries) =
-                        nordselect::filters::CountriesFilter::region_countries(&upper.as_ref())
-                    {
-                        if country_filter.is_none() {
-                            country_filter = Some(HashSet::new());
-                        }
-                        region_countries.iter().for_each(|flag| {
-                            country_filter.as_mut().unwrap().insert(String::from(*flag));
-                            ()
-                        });
-                    } else {
-                        eprintln!("Error: unknown filter: \"{}\"", filter);
-                        std::process::exit(1);
+    let mut parsed_filters = PossibleFilters::new();
+
+    for filter in cli_filters.into_iter() {
+        match filter {
+            "p2p" => parsed_filters.p2p_filter = true,
+            "standard" => parsed_filters.standard_filter = true,
+            "double" => parsed_filters.double_filter = true,
+            "dedicated" => parsed_filters.dedicated_filter = true,
+            "tor" => parsed_filters.tor_filter = true,
+            "obfuscated" => parsed_filters.obfuscated_filter = true,
+            "tcp" => parsed_filters.tcp_filter = true,
+            "udp" => parsed_filters.udp_filter = true,
+            _ => {
+                let upper = filter.to_uppercase();
+                if flags.contains(&upper.as_ref()) {
+                    if parsed_filters.country_filter.is_none() {
+                        parsed_filters.country_filter = Some(HashSet::with_capacity(1));
                     }
+                    parsed_filters
+                        .country_filter
+                        .as_mut()
+                        .unwrap()
+                        .insert(upper);
+                } else if let Some(region_countries) =
+                    nordselect::filters::CountriesFilter::region_countries(&upper.as_ref())
+                {
+                    if parsed_filters.country_filter.is_none() {
+                        parsed_filters.country_filter = Some(HashSet::new());
+                    }
+                    region_countries.iter().for_each(|flag| {
+                        parsed_filters
+                            .country_filter
+                            .as_mut()
+                            .unwrap()
+                            .insert(String::from(*flag));
+                        ()
+                    });
+                } else {
+                    eprintln!("Error: unknown filter: \"{}\"", filter);
+                    std::process::exit(1);
                 }
-            };
-        }
+            }
+        };
     }
+    parsed_filters
+}
 
-    // Filter servers that are not required.
-
+fn apply_filters(filters_to_apply: &PossibleFilters, data: &mut Servers) {
     // Filtering countries
-    if let Some(countries) = country_filter {
-        data.filter(&filters::CountriesFilter::from(countries));
+    if let Some(ref countries) = filters_to_apply.country_filter {
+        data.filter(&filters::CountriesFilter::from(countries.clone()));
     };
 
     // Filtering Standard
-    if standard_filter {
+    if filters_to_apply.standard_filter {
         data.filter(&filters::CategoryFilter::from(ServerCategory::Standard));
     };
 
     // Filtering P2P
-    if p2p_filter {
+    if filters_to_apply.p2p_filter {
         data.filter(&filters::CategoryFilter::from(ServerCategory::P2P));
     };
 
     // Filtering Tor/Onion
-    if tor_filter {
+    if filters_to_apply.tor_filter {
         data.filter(&filters::CategoryFilter::from(ServerCategory::Tor));
     };
 
     // Filtering Double
-    if double_filter {
+    if filters_to_apply.double_filter {
         data.filter(&filters::CategoryFilter::from(ServerCategory::Double));
     };
 
     // Filtering Obfuscated servers
-    if obfuscated_filter {
+    if filters_to_apply.obfuscated_filter {
         data.filter(&filters::CategoryFilter::from(ServerCategory::Obfuscated));
     };
 
     // Filtering Dedicated
-    if dedicated_filter {
+    if filters_to_apply.dedicated_filter {
         data.filter(&filters::CategoryFilter::from(ServerCategory::Dedicated));
     };
 
     // Filtering servers with TCP capacity
-    if tcp_filter {
+    if filters_to_apply.tcp_filter {
         data.filter(&filters::ProtocolFilter::from(Protocol::Tcp));
     }
 
     // Filtering servers with UDP capacity
-    if udp_filter {
+    if filters_to_apply.udp_filter {
         data.filter(&filters::ProtocolFilter::from(Protocol::Udp));
     }
+}
 
+fn sort(data: &mut Servers, matches: &clap::ArgMatches) {
     let mut should_sort = true;
 
     // Perform ping test if required
@@ -277,6 +264,68 @@ fn main() {
     if should_sort {
         data.sort(&nordselect::sorters::LoadSorter);
     }
+}
+
+struct PossibleFilters {
+    pub country_filter: Option<HashSet<String>>,
+    pub standard_filter: bool,
+    pub p2p_filter: bool,
+    pub double_filter: bool,
+    pub dedicated_filter: bool,
+    pub tor_filter: bool,
+    pub obfuscated_filter: bool,
+    pub tcp_filter: bool,
+    pub udp_filter: bool,
+}
+
+impl PossibleFilters {
+    fn new() -> PossibleFilters {
+        PossibleFilters {
+            country_filter: None,
+            standard_filter: false,
+            p2p_filter: false,
+            double_filter: false,
+            dedicated_filter: false,
+            tor_filter: false,
+            obfuscated_filter: false,
+            tcp_filter: false,
+            udp_filter: false,
+        }
+    }
+}
+
+fn main() {
+    // Parse CLI args
+    let matches = parse_cli_args();
+
+    // Get API data
+    let mut data = match Servers::from_api() {
+        Ok(x) => x,
+        Err(x) => {
+            eprintln!("Could not download data: {}", x);
+            std::process::exit(1);
+        }
+    };
+
+    // Should we only show the available filters?
+    if matches.is_present("list_filters") {
+        show_available_filters(&data);
+        std::process::exit(0);
+    }
+
+    // Detect filters
+    let filters_to_apply = parse_filters(
+        matches
+            .values_of("filter")
+            .unwrap_or(clap::Values::default()),
+        &data,
+    );
+
+    // Filter servers that are not required.
+    apply_filters(&filters_to_apply, &mut data);
+
+    // Sort the servers
+    sort(&mut data, &matches);
 
     // Print the ideal server, if found.
     if let Some(server) = data.perfect_server() {
