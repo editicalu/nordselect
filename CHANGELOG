@@ -1,11 +1,20 @@
 # Changelog
 
+## Version 1.0.0 (upcoming!)
+
+- Improved documentation
+- Tests
+- Benchmarking has been added
+- Deleted deprecated code
+
 ## Version 0.3.3
 
 - The data structures in the library and the API differ slightly.
 - Filters and Sorters are now a Trait, allowing improved flexibility.
 - The README is rewritten to make it easier to get started.
 - The library is sorted in modules.
+- CI has been setup with Travis CI.
+- Dummy data has been added. Before testing, use `dummydata.sh` to generate dummy data.
 
 ## Version 0.3.2
 

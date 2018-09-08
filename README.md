@@ -1,5 +1,7 @@
 # NordSelect
 
+[![Build Status](https://travis-ci.org/editicalu/nordselect.svg?branch=master)](https://travis-ci.org/editicalu/nordselect)
+
 A fast CLI and Rust crate to find the perfect NordVPN server to connect to, based on given filters.
 
 # Installation
@@ -63,6 +65,8 @@ The documentation of the library can be found at [docs.rs](https://docs.rs/nords
 The application is in development. If you encouter a bug, please open an issue describing how the bug occured or open a PR.
 
 New features are not planned for now, but feel free to open issues to discuss them.
+
+**Warning**: before running `cargo test`, use `dummydata.sh` to generate some dummy data.
 
 # Selection method
 
