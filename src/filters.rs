@@ -20,7 +20,7 @@ pub trait Filter {
 /// use nordselect::filters::CountryFilter;
 ///
 /// let mut data = Servers::dummy_data();
-/// data.filter(&CountryFilter::from_code("BE".to_string()));
+/// data.filter(&CountryFilter::from("BE"));
 ///
 /// assert_eq!(data.perfect_server().unwrap().flag, "BE");
 /// ```
@@ -290,10 +290,36 @@ mod tests {
     use super::*;
 
     #[test]
+    #[allow(deprecated)]
+    fn country_filter_simple_legacy() {
+        let mut data = Servers::dummy_data();
+
+        data.filter(&CountryFilter::from_code("sg".to_string()));
+
+        let server_opt = data.perfect_server();
+
+        assert!(server_opt.is_some());
+        assert_eq!(server_opt.unwrap().flag, "SG");
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn country_filter_advanced_legacy() {
+        let mut data = Servers::dummy_data();
+
+        data.filter(&CountryFilter::from_code("Sg".to_string()));
+
+        let server_opt = data.perfect_server();
+
+        assert!(server_opt.is_some());
+        assert_eq!(server_opt.unwrap().flag, "SG");
+    }
+
+    #[test]
     fn country_filter_simple() {
         let mut data = Servers::dummy_data();
 
-        data.filter(&CountryFilter::from_code("sg"));
+        data.filter(&CountryFilter::from("sg"));
 
         let server_opt = data.perfect_server();
 
@@ -305,7 +331,7 @@ mod tests {
     fn country_filter_advanced() {
         let mut data = Servers::dummy_data();
 
-        data.filter(&CountryFilter::from_code("Sg"));
+        data.filter(&CountryFilter::from("Sg"));
 
         let server_opt = data.perfect_server();
 
