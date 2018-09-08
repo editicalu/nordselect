@@ -203,8 +203,9 @@ impl Servers {
         Self::from_txt(&text)
     }
 
-    /// Returns the Servers from the API call on Sept. 8th 17:00 UTC. Use this only in benchmarks
-    /// and examples in documentation.
+    /// Returns the data, fetched out of the `dummydata` file, generated using `dummydata.sh`.
+    ///
+    /// Use this only for debugging, testing and benchmarking.
     ///
     /// # Examples
     /// ```
