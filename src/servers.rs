@@ -202,11 +202,8 @@ pub struct Servers {
 
 /// Functions to build and read data from the Servers.
 impl Servers {
-    /// Downloads the list of servers from the API.
-    pub fn from_api() -> Result<Servers, Box<std::error::Error>> {
-        let mut data = reqwest::get("https://api.nordvpn.com/server")?;
-        let text = data.text()?;
-        let api_servers: Vec<ApiServer> = serde_json::from_str(&text)?;
+    fn from_txt(txt: &str) -> Result<Servers, Box<std::error::Error>> {
+        let api_servers: Vec<ApiServer> = serde_json::from_str(&txt)?;
 
         Ok(Servers {
             servers: Vec::from_iter(
@@ -215,6 +212,21 @@ impl Servers {
                     .map(|api_server| Server::from(api_server)),
             ),
         })
+    }
+
+    /// Downloads the list of servers from the API.
+    pub fn from_api() -> Result<Servers, Box<std::error::Error>> {
+        let mut data = reqwest::get("https://api.nordvpn.com/server")?;
+        let text = data.text()?;
+
+        Self::from_txt(&text)
+    }
+
+    /// Returns the Servers from the API call on Sept. 8th 17:00 UTC. Use this only in benchmarks
+    /// and examples in documentation.
+    pub fn dummy_data() -> Servers {
+        let text = std::fs::read_to_string("dummydata").unwrap();
+        Self::from_txt(&text).unwrap()
     }
 
     #[deprecated(since = "0.3.2", note = "please use `flags` instead")]

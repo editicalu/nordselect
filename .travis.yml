@@ -8,3 +8,10 @@ matrix:
     - rust: nightly
   fast_finish: true
   
+before_install:
+  - apt-get install -y curl
+
+# Load some dummy data for testing.
+before_script:
+  - chmod +x ./dummydata.sh
+  - ./dummydata.sh
