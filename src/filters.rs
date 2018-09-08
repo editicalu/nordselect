@@ -34,6 +34,7 @@ pub struct CountryFilter {
 impl CountryFilter {
     /// Creates a CountryFilter from the given country. The countrycode should be an
     /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) code.
+    #[deprecated(since = "1.0.0", note = "Inefficient, use the From-trait implementation instead")]
     pub fn from_code(countrycode: String) -> CountryFilter {
         CountryFilter {
             country: countrycode.to_ascii_uppercase(),
@@ -44,6 +45,14 @@ impl CountryFilter {
 impl Filter for CountryFilter {
     fn filter(&self, server: &Server) -> bool {
         self.country == server.flag
+    }
+}
+
+impl<'a> From<&'a str> for CountryFilter {
+    fn from(countrycode: &str) -> CountryFilter {
+        CountryFilter {
+            country: countrycode.to_ascii_uppercase(),
+        }
     }
 }
 
@@ -272,5 +281,67 @@ impl From<ServerCategory> for CategoryFilter {
 impl Filter for CategoryFilter {
     fn filter(&self, server: &Server) -> bool {
         server.categories.contains(&self.category)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::super::Servers;
+    use super::*;
+
+    #[test]
+    fn country_filter_simple() {
+        let mut data = Servers::dummy_data();
+
+        data.filter(&CountryFilter::from_code("sg"));
+
+        let server_opt = data.perfect_server();
+
+        assert!(server_opt.is_some());
+        assert_eq!(server_opt.unwrap().flag, "SG");
+    }
+
+    #[test]
+    fn country_filter_advanced() {
+        let mut data = Servers::dummy_data();
+
+        data.filter(&CountryFilter::from_code("Sg"));
+
+        let server_opt = data.perfect_server();
+
+        assert!(server_opt.is_some());
+        assert_eq!(server_opt.unwrap().flag, "SG");
+    }
+
+    #[test]
+    fn countries_filter_regions_give_some() {
+        for region in CountriesFilter::available_regions() {
+            assert!(CountriesFilter::from_region(region).is_some());
+        }
+    }
+
+    #[test]
+    fn countries_filter_empty() {
+        let mut data = Servers::dummy_data();
+
+        data.filter(&CountriesFilter::from(HashSet::with_capacity(0)));
+
+        let server_opt = data.perfect_server();
+
+        assert_eq!(server_opt, None);
+    }
+
+    #[test]
+    fn countries_filter_simple() {
+        let mut data = Servers::dummy_data();
+
+        data.filter(&CountriesFilter::from(HashSet::from_iter(
+            vec!["AX", "AY", "AZ"].into_iter().map(|x| x.to_string()),
+        )));
+
+        let server_opt = data.perfect_server();
+
+        assert!(server_opt.is_some());
+        assert_eq!(server_opt.unwrap().flag, "AZ");
     }
 }

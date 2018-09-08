@@ -1,11 +1,11 @@
 # Changelog
 
-## Version 1.0.0 (upcoming!)
+## Version 1.0.0
 
 - Improved documentation
-- Tests
-- Benchmarking has been added
+- Optimazations here and there
 - Deleted deprecated code
+- Some tests. More will be added in 1.0.1.
 
 ## Version 0.3.3
 
