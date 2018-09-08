@@ -48,9 +48,9 @@ To see all filters, use `nordselect --filters`
     # At the moment of writing, no such server is available.
     nordselect tor double
 
-    # Use case: in combination with openvpn-nordvpn (Arch Linux):
-    # https://github.com/nstinus/nordvpn
-    nordvpn start `nordselect ca`
+    # Use case: in combination with the official NordVPN CLI:
+    # https://nordvpn.com/download/linux/
+    nordvpn connect `nordselect ua`
 
 # Library Usage
 
