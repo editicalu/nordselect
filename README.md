@@ -58,8 +58,6 @@ To see all filters, use `nordselect --filters`
 
 The documentation of the library can be found at [docs.rs](https://docs.rs/nordselect/).
 
-**Warning**: deprecated code shall be removed in the version 1.0.0 release.
-
 # Development
 
 The application is in development. If you encouter a bug, please open an issue describing how the bug occured or open a PR.

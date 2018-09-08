@@ -28,10 +28,6 @@
 //! }
 //! ```
 
-// This is added to avoid a lot of comments about deprecated methods using other deprecated methods.
-// TODO: delete in 1.0.0 release
-#![allow(deprecated)]
-
 extern crate regex;
 extern crate reqwest;
 #[macro_use]

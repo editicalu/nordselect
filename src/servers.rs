@@ -1,5 +1,4 @@
 //! Data structures and methods to interact with the NordVPN servers.
-use oping;
 use reqwest;
 use serde_json;
 use std;
@@ -119,12 +118,6 @@ pub struct Server {
     pub categories: Vec<ServerCategory>,
     /// Features of the server
     pub features: Features,
-    /// Result of the ping test.
-    #[deprecated(
-        since = "0.3.3",
-        note = "Ping tests no longer belong in the Server. Please use `LoadSorter` instead."
-    )]
-    pub ping: Option<usize>,
 }
 
 impl Hash for Server {
@@ -146,30 +139,7 @@ impl From<ApiServer> for Server {
                     .map(|server_type| ServerCategory::from(server_type.name)),
             ),
             features: api_server.features,
-            ping: None,
         }
-    }
-}
-
-/// Ping operations
-impl Server {
-    /// Ping per instance.
-    #[deprecated(
-        since = "0.3.3",
-        note = "Ping tests no longer belong in the Server. Please use `LoadSorter` instead."
-    )]
-    fn ping_single(&mut self, tries: usize) -> Result<(), Box<std::error::Error>> {
-        let sum: usize = {
-            let mut sum = 0usize;
-            for _ in 0..tries {
-                let mut pingr = oping::Ping::new();
-                pingr.add_host(&self.domain)?;
-                sum = sum + pingr.send()?.next().unwrap().latency_ms as usize;
-            }
-            sum
-        };
-        self.ping = Some(sum / tries as usize);
-        Ok(())
     }
 }
 
@@ -229,18 +199,8 @@ impl Servers {
         Self::from_txt(&text).unwrap()
     }
 
-    #[deprecated(since = "0.3.2", note = "please use `flags` instead")]
-    pub fn get_flags(&self) -> HashSet<&str> {
-        self.flags()
-    }
-
     pub fn flags(&self) -> HashSet<&str> {
         HashSet::from_iter(self.servers.iter().map(|server| server.flag.as_ref()))
-    }
-
-    #[deprecated(since = "0.3.2", note = "please use `perfect_server` instead")]
-    pub fn get_perfect_server(&self) -> Option<Server> {
-        self.perfect_server()
     }
 
     /// Returns the perfect server. This should be called when the filters are applied.
@@ -263,48 +223,9 @@ pub enum Protocol {
 
 /// All filters that can be applied.
 impl Servers {
-    /// Filters the servers on a certain category.
-    #[deprecated(since = "0.3.3", note = "please use `CategoryFilter` instead")]
-    pub fn filter_category(&mut self, category: ServerCategory) {
-        (&mut self.servers).retain(|server| server.categories.contains(&category));
-    }
-
-    /// Filters the servers on a certain protocol.
-    #[deprecated(since = "0.3.3", note = "please use `ProtocolFilter` instead")]
-    pub fn filter_protocol(&mut self, protocol: Protocol) {
-        match protocol {
-            Protocol::Tcp => (&mut self.servers).retain(|server| server.features.openvpn_tcp),
-            Protocol::Udp => (&mut self.servers).retain(|server| server.features.openvpn_udp),
-        };
-    }
-
-    /// Filters the servers on a certain country.
-    #[deprecated(since = "0.3.3", note = "please use `CountryFilter` instead")]
-    pub fn filter_country(&mut self, country: &str) {
-        (&mut self.servers).retain(|server| server.flag == country)
-    }
-
-    /// Filters the servers on a set of countries. It retains servers from all these countries.
-    #[deprecated(since = "0.3.3", note = "please use `CountriesFilter` instead")]
-    pub fn filter_countries(&mut self, countries: &HashSet<String>) {
-        (&mut self.servers).retain(|server| countries.contains(&server.flag))
-    }
-
     /// Applies the given filter on this serverlist.
     pub fn filter(&mut self, filter: &Filter) {
         (&mut self.servers).retain(|server| filter.filter(&server))
-    }
-
-    #[deprecated(since = "0.3.3", note = "please use `LoadSorter` instead")]
-    /// Sorts the servers on their load.
-    pub fn sort_load(&mut self) {
-        (&mut self.servers).sort_unstable_by(|x, y| x.load.cmp(&y.load));
-    }
-
-    #[deprecated(since = "0.3.3", note = "please use `PingSorter` instead")]
-    /// Sorts servers on ping result. Should only be called when all servers were able to ping.
-    fn sort_ping(&mut self) {
-        (&mut self.servers).sort_unstable_by(|x, y| x.ping.unwrap().cmp(&y.ping.unwrap()));
     }
 
     /// Sorts the servers using a Sorter. The sort is unstable.
@@ -316,33 +237,5 @@ impl Servers {
     /// servers.
     pub fn cut(&mut self, max: usize) {
         self.servers.truncate(max);
-    }
-
-    /// Benchmark the given amount of first servers in the list based upon their ping latency.
-    /// Omits other servers.
-    ///
-    /// Returns `Ok(())` when succeeded. Returns an `Box<Error>` otherwise.
-    ///
-    /// - `servers`: amount of best servers that should be tested.
-    /// - `tries`: how many tries should be done. The average ping is taken.
-    /// - `parallel`: whether the tests should be run in parallel. This will make tests go faster,
-    ///   but less accurate.
-    #[deprecated(since = "0.3.3", note = "please use `PingSorter` instead")]
-    pub fn benchmark_ping(
-        &mut self,
-        servers: usize,
-        tries: usize,
-        _parallel: bool,
-    ) -> Result<(), Box<std::error::Error>> {
-        // Omit other servers
-        self.cut(servers);
-        for mut server in &mut self.servers {
-            (&mut server).ping_single(tries)?;
-        }
-
-        // No errors -> sort
-        self.sort_ping();
-
-        Ok(())
     }
 }
