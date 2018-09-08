@@ -1,8 +1,7 @@
 //! NordSelect is a small library to find the best NordVPN servers for your needs.
 //!
-//! Included is a small CLI that uses most of the functionality. Usage of that can be found
-//! [here](https://editicalu.github.io/nordselect)
-//!
+//! This crate has a small CLI included that uses most of the functionality. Documentation of that
+//! can be found [here](https://editicalu.github.io/nordselect) or in the README.
 //!
 //! # Example
 //! ```
@@ -28,12 +27,18 @@
 //! }
 //! ```
 
+// Used to parse some data out of a string.
 extern crate regex;
+// Used to easily send GET requests.
 extern crate reqwest;
+/// Used to parse JSON data from the API.
 #[macro_use]
 extern crate serde_derive;
+/// Used for ping functionality.
 extern crate oping;
+/// Used to parse JSON data from the API.
 extern crate serde;
+/// Used to parse JSON data from the API.
 extern crate serde_json;
 
 pub mod filters;

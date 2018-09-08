@@ -9,13 +9,36 @@ use std::iter::FromIterator;
 
 use oping::Ping;
 
-/// A Sorter is a way to order servers.
+/// A Sorter is a way to order servers. It should be noted that these are sorted from best server
+/// (according to the way of sorting) to worst one.
+///
+/// # Example
+///
+/// ```
+/// use nordselect::{Servers, Server, sorters::Sorter};
+/// use std::cmp::Ordering;
+/// let mut data = Servers::dummy_data();
+///
+/// // Demo sorter: sorts on the alphabetical order of the countries of servers.
+/// struct FlagSorter;
+///
+/// impl Sorter for FlagSorter {
+///    fn sort(&self, a: &Server, b: &Server) -> Ordering {
+///        a.flag.cmp(&b.flag)
+///    }
+/// }
+///
+/// data.sort(&FlagSorter);
+/// // United Arab Emirates is the first country listed
+/// assert_eq!(data.perfect_server().unwrap().flag, "AE");
+///
+/// ```
 pub trait Sorter {
-    /// Takes two servers, returns how they should be ordered.
+    /// Takes two servers, returns how they should be ordered according to this Sorter.
     fn sort(&self, &Server, &Server) -> Ordering;
 }
 
-/// Sorter that sorts servers based on their load.
+/// Sorter that sorts servers based on their load, favouring the least loaded one.
 pub struct LoadSorter;
 
 impl Sorter for LoadSorter {
@@ -25,11 +48,22 @@ impl Sorter for LoadSorter {
 }
 
 /// Sorter that sorts based on a ping-test.
+///
+/// Please note that ping tests enhance the complexity of your program, whereas the `LoadSorter`
+/// already provides very good results. I do not recommend you using this, as it requires special
+/// privileges from the OS. These can be set using the following command on Linux.
+///
+/// ```bash
+/// sudo setcap cap_net_raw+ep <your-compiled-binary>
+/// ```
+///
+/// More details about this (and why you have to do it) can be found at the [oping crate](https://github.com/cfallin/rust-oping).
 pub struct PingSorter {
     /// The results of the ping test.
     ping_results: HashMap<String, usize>,
 }
 
+/// Ways to set up a PingSorter.
 impl PingSorter {
     /// Creates a new PingSorter using one ping instance, doing tests simultaneously. This is less precise, but is faster to run.
     ///

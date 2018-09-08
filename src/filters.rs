@@ -4,21 +4,39 @@ use super::{Protocol, Server, ServerCategory};
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
-/// Way to minify the amount of available servers.
+/// Way to reduce the amount of available servers.
 pub trait Filter {
-    /// Returns whether this server fullfills the needs of the Filter.
+    /// Returns whether this server fullfills the needs of the Filter. When false, the given server
+    /// should be removed from the set.
     fn filter(&self, &Server) -> bool;
 }
 
 /// Filter to only use servers from one specific country.
+///
+/// # Example
+///
+/// ```
+/// use nordselect::Servers;
+/// use nordselect::filters::CountryFilter;
+///
+/// let mut data = Servers::dummy_data();
+/// data.filter(&CountryFilter::from_code("BE".to_string()));
+///
+/// assert_eq!(data.perfect_server().unwrap().flag, "BE");
+/// ```
 pub struct CountryFilter {
+    /// The country on which to filter, noted according to
+    /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2).
     country: String,
 }
 
+/// Ways to construct a CountryFilter.
 impl CountryFilter {
-    pub fn from_code(country: String) -> CountryFilter {
+    /// Creates a CountryFilter from the given country. The countrycode should be an
+    /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) code.
+    pub fn from_code(countrycode: String) -> CountryFilter {
         CountryFilter {
-            country: country.to_ascii_uppercase(),
+            country: countrycode.to_ascii_uppercase(),
         }
     }
 }
@@ -30,13 +48,38 @@ impl Filter for CountryFilter {
 }
 
 /// Filter that keeps servers from any of the provided countries.
+///
+/// This struct can be build from your own list of countries, or it can be used with one of the
+/// provided regions. To see the available regions, use [CountriesFilter::available_regions()](#method.available_regions)
+///
+/// # Examples
+/// ```
+/// use nordselect::Servers;
+/// use nordselect::filters::CountriesFilter;
+///
+/// let mut data = Servers::dummy_data();
+///
+/// // Countries of the European Union.
+/// data.filter(&CountriesFilter::from_region("EU").unwrap());
+///
+/// // The country will be one of the EU.
+/// assert!(
+///     CountriesFilter::region_countries("EU").unwrap()
+///         .contains(&data.perfect_server().unwrap().flag.as_ref()));
+/// ```
 pub struct CountriesFilter {
+    /// Countries which are allowed.
     countries: HashSet<String>,
 }
 
 /// Region operations
 impl CountriesFilter {
-    /// Builds a CountriesFilter from one of the provided regions.
+    /// Builds a CountriesFilter from one of the provided regions. Regions should be given in the
+    /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) format, but can be
+    /// uppercase or lowercase.
+    ///
+    /// When calling this with one of the `[available_regions](method.available_regions)` will
+    /// always return `Some(CountriesFilter)`.
     pub fn from_region(region: &str) -> Option<CountriesFilter> {
         match region.to_lowercase().as_ref() {
             "eu" | "ею" => Some(CountriesFilter {
@@ -52,10 +95,15 @@ impl CountriesFilter {
     }
 
     /// Returns regions that can be used.
-    pub fn available_regions() -> Vec<&'static str> {
-        vec!["EU", "ЕЮ"]
+    ///
+    /// When calling [from_region](method.from_region) with one of the values in the returned slice
+    /// should always give a `Some`-value.
+    pub fn available_regions() -> &'static [&'static str] {
+        &["EU", "ЕЮ"]
     }
 
+    /// Returns the countries that are represented by the given region. Regions should be in
+    /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) format.
     pub fn region_countries(region: &str) -> Option<&'static [&'static str]> {
         match region.as_ref() {
             "EU" | "ЕЮ" => Some(&[
@@ -79,7 +127,21 @@ impl Filter for CountriesFilter {
     }
 }
 
-/// Filter that keeps servers that accept a specific protocol.
+/// Filter that keeps only servers that accept a specific protocol.
+///
+/// # Example
+///
+/// ```
+/// use nordselect::Servers;
+/// use nordselect::Protocol;
+/// use nordselect::filters::ProtocolFilter;
+/// let mut data = Servers::dummy_data();
+///
+/// // Filter on the TCP protocol
+/// data.filter(&ProtocolFilter::from(Protocol::Tcp));
+///
+/// assert!(data.perfect_server().is_some());
+/// ```
 pub struct ProtocolFilter {
     /// The protocol that should be filtered against.
     protocol: Protocol,
@@ -100,7 +162,20 @@ impl Filter for ProtocolFilter {
     }
 }
 
-/// Filter that keeps servers with less load than a provided value.
+/// Filter that keeps servers with less or equal load compared to a provided value.
+///
+/// # Example
+///
+/// ```
+/// use nordselect::Servers;
+/// use nordselect::filters::LoadFilter;
+/// let mut data = Servers::dummy_data();
+///
+/// // Filter on 10% load or less.
+/// data.filter(&LoadFilter::from(10));
+///
+/// assert!(data.perfect_server().is_some());
+/// ```
 pub struct LoadFilter {
     /// The maximal allowed load.
     load: u8,
@@ -119,7 +194,11 @@ impl Filter for LoadFilter {
     }
 }
 
-/// Filter that contains multiple Filter instances. This could be more efficient, as only servers fullfilling all requirements are kept.
+/// Filter that contains multiple Filter instances. This could be more efficient, as only servers
+/// fullfilling all requirements are kept.
+///
+/// Logically, this should be viewed as an AND-gate, as every `Filter` should allow the server to
+/// be kept.
 pub struct CombinedFilter {
     // The actual filters
     filters: Vec<Box<Filter>>,
@@ -143,8 +222,8 @@ impl CombinedFilter {
 }
 
 impl From<Vec<Box<Filter>>> for CombinedFilter {
-    fn from(source: Vec<Box<Filter>>) -> CombinedFilter {
-        CombinedFilter { filters: source }
+    fn from(filters: Vec<Box<Filter>>) -> CombinedFilter {
+        CombinedFilter { filters }
     }
 }
 
@@ -159,12 +238,27 @@ impl Filter for CombinedFilter {
     fn filter(&self, server: &Server) -> bool {
         self.filters
             .iter()
+            // Sorry for the confusing line of Rust code.
             .filter(|filter| filter.filter(server))
             .next()
             .is_some()
     }
 }
 
+/// Filter the Servers using a given category.
+///
+/// # Example
+///
+/// ```
+/// use nordselect::{Servers, ServerCategory};
+/// use nordselect::filters::CategoryFilter;
+/// let mut data = Servers::dummy_data();
+///
+/// // Filter on Standard servers.
+/// data.filter(&CategoryFilter::from(ServerCategory::Standard));
+///
+/// assert!(data.perfect_server().is_some());
+/// ```
 pub struct CategoryFilter {
     category: ServerCategory,
 }

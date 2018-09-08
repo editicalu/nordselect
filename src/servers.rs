@@ -1,30 +1,31 @@
 //! Data structures and methods to interact with the NordVPN servers.
+use filters::Filter;
 use reqwest;
 use serde_json;
-use std;
-
-use filters::Filter;
 use sorters::Sorter;
+use std;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
 
 #[derive(Debug, Deserialize, PartialEq, Eq, Clone)]
-/// The categories a Server can be in.
+/// The categories a Server can be in, as used by NordVPN.
 pub enum ServerCategory {
     /// A standard VPN server
     Standard,
     /// A VPN server with P2P services allowed.
     P2P,
-    /// A VPN server with a obfuscated IP (i.e. floating IP).
+    /// A VPN server with an obfuscated IP (i.e. floating IP).
     Obfuscated,
     /// A VPN server with a dedicated IP, which is used only by one VPN user at a time.
     Dedicated,
-    /// A VPN server with Tor/Onion funcitonality
+    /// A VPN server with [Tor](https://www.torproject.org) connections allowed.
     Tor,
     /// A VPN server that can be used to connect to another NordVPN server.
     Double,
-    /// A VPN server that has a category that is not recognised.
+    /// A VPN server that has a category that is not recognised by this library.\
+    ///
+    /// Should you ever encouter this in the API response, feel free to open an issue.
     UnknownServer,
 }
 
@@ -44,6 +45,8 @@ impl From<String> for ServerCategory {
 
 #[derive(Debug, Deserialize, PartialEq, Clone)]
 /// The struct used to identify categories, used in the API.
+///
+/// **Should only be used when parsing API data.**
 struct ApiCategory {
     /// The name of the category (converted into a type)
     pub name: String,
@@ -54,13 +57,13 @@ struct ApiCategory {
 pub struct Features {
     /// Support for IKEv2 protocol.
     pub ikev2: bool,
-    /// Support for udp over openvpn
+    /// Support for udp over OpenVPN
     pub openvpn_udp: bool,
-    /// Support for tcp over openvpn
+    /// Support for tcp over OpenVPN
     pub openvpn_tcp: bool,
     /// Support for the SOCKS protocol.
     pub socks: bool,
-    /// This server can be used as a proxy
+    /// This server can be used as a proxy.
     pub proxy: bool,
     /// Support for the older Point-to-Point Tunneling Protocol
     ///
@@ -78,15 +81,15 @@ pub struct Features {
     /// > Although technically you can use the L2TP/PPTP protocol, it has serious security flaws.
     /// > Whenever possible, we recommend choosing OpenVPN or IKEv2/IPSec instead.
     pub l2tp: bool,
-    /// Support for udp over openvpn with xor obfuscation
+    /// Support for udp over OpenVPN with xor obfuscation
     pub openvpn_xor_udp: bool,
-    /// Support for tcp over openvpn with xor obfuscation
+    /// Support for tcp over OpenVPN with xor obfuscation
     pub openvpn_xor_tcp: bool,
-    /// Support for a proxy with cybersec
+    /// Support for a proxy with CyberSec
     pub proxy_cybersec: bool,
     /// Support for a proxy with SSL
     pub proxy_ssl: bool,
-    /// Support for a proxy with cybersec and SSL
+    /// Support for a proxy with CyberSec and SSL
     pub proxy_ssl_cybersec: bool,
 }
 
@@ -97,7 +100,7 @@ struct ApiServer {
     pub flag: String,
     /// The domain of this server.
     pub domain: String,
-    /// The current load on this server.
+    /// The current load on this server, written as a percentage (%)
     pub load: u8,
     /// Categories this server is in.
     pub categories: Vec<ApiCategory>,
@@ -143,11 +146,11 @@ impl From<ApiServer> for Server {
     }
 }
 
-/// Non-ping operations.
 impl Server {
     /// Returns the unique identifier of the server, without returning the full domain.
     ///
-    /// This name is extracted from the `Server` everytime the function is called.
+    /// This name is extracted from the `Server` everytime the function is called. Use it only to
+    /// create output.
     pub fn name(&self) -> Option<&str> {
         use regex::Regex;
         let re = Regex::new(r"(.+)\.nordvpn.com").unwrap();
@@ -172,6 +175,7 @@ pub struct Servers {
 
 /// Functions to build and read data from the Servers.
 impl Servers {
+    /// Creates a Servers by reading the given text.
     fn from_txt(txt: &str) -> Result<Servers, Box<std::error::Error>> {
         let api_servers: Vec<ApiServer> = serde_json::from_str(&txt)?;
 
@@ -184,7 +188,14 @@ impl Servers {
         })
     }
 
-    /// Downloads the list of servers from the API.
+    /// Downloads the list of servers from the API. Returns an error on failure.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let data = nordselect::Servers::from_api();
+    /// assert!(data.is_ok());
+    /// ```
     pub fn from_api() -> Result<Servers, Box<std::error::Error>> {
         let mut data = reqwest::get("https://api.nordvpn.com/server")?;
         let text = data.text()?;
@@ -194,16 +205,53 @@ impl Servers {
 
     /// Returns the Servers from the API call on Sept. 8th 17:00 UTC. Use this only in benchmarks
     /// and examples in documentation.
+    ///
+    /// # Examples
+    /// ```
+    /// // If this fails, run `dummydata.sh` from the crate root.
+    /// nordselect::Servers::dummy_data();
+    /// ```
     pub fn dummy_data() -> Servers {
         let text = std::fs::read_to_string("dummydata").unwrap();
         Self::from_txt(&text).unwrap()
     }
 
+    /// Returns a set with all the flags (countries) in this set.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nordselect::Servers;
+    /// let data = Servers::dummy_data();
+    ///
+    /// assert!(data.flags().contains("BE"));
+    /// assert!(data.flags().contains("US"));
+    ///
+    /// assert!(!data.flags().contains("XK")); // No servers in Kosovo
+    /// assert!(!data.flags().contains("EU")); // The EU is not a country
+    /// ```
     pub fn flags(&self) -> HashSet<&str> {
         HashSet::from_iter(self.servers.iter().map(|server| server.flag.as_ref()))
     }
 
-    /// Returns the perfect server. This should be called when the filters are applied.
+    /// Returns the best server, according to the given values. This should be called after all the
+    /// filters have been applied.
+    ///
+    /// Returns `None` if no `Server` fullfills all your needs.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nordselect::{Servers, filters};
+    /// let mut data = Servers::dummy_data();
+    ///
+    /// data.filter(&filters::CountryFilter::from_code("".to_string()));
+    /// assert_eq!(data.perfect_server(), None);
+    ///
+    /// let mut data = Servers::dummy_data();
+    /// data.filter(&filters::CountryFilter::from_code("BE".to_string()));
+    /// assert!(data.perfect_server().is_some());
+    /// ```
     pub fn perfect_server(&self) -> Option<Server> {
         match self.servers.get(0) {
             Some(x) => Some(x.clone()),
@@ -221,7 +269,7 @@ pub enum Protocol {
     Tcp,
 }
 
-/// All filters that can be applied.
+/// All manipulations that will alter the servers.
 impl Servers {
     /// Applies the given filter on this serverlist.
     pub fn filter(&mut self, filter: &Filter) {
@@ -235,6 +283,9 @@ impl Servers {
 
     /// Removes all but the `max` best servers at the moment. Does nothing if there are less
     /// servers.
+    ///
+    /// 'Best' servers are defined by the filters and sorters that should have been applied before
+    /// calling this function.
     pub fn cut(&mut self, max: usize) {
         self.servers.truncate(max);
     }
