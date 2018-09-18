@@ -197,7 +197,7 @@ impl Servers {
     /// assert!(data.is_ok());
     /// ```
     pub fn from_api() -> Result<Servers, Box<std::error::Error>> {
-        let mut data = reqwest::get("https://api.nordvpn.com/server")?;
+        let mut data = reqwest::get("https://nordvpn.com/api/server")?;
         let text = data.text()?;
 
         Self::from_txt(&text)

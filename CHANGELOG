@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.0.1
+
+- OpenSSL will be compiled from sources to avoid upstream problems
+- breaking change in API fixed
+
 ## Version 1.0.0
 
 - Improved documentation
