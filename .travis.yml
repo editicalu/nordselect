@@ -11,7 +11,7 @@ matrix:
 before_install:
   - sudo apt-get install -y curl
   - sudo apt-get update
-  - sudo apt-get purge -yq postgresql 
+  - sudo apt-get purge -yq postgresql-9.3 postgresql-9.4 postgresql-9.5 postgresql-9.6 
   - sudo apt-get upgrade -yq
 
 # Load some dummy data for testing.
