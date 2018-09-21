@@ -34,7 +34,10 @@ pub struct CountryFilter {
 impl CountryFilter {
     /// Creates a CountryFilter from the given country. The countrycode should be an
     /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) code.
-    #[deprecated(since = "1.0.0", note = "Inefficient, use the From-trait implementation instead")]
+    #[deprecated(
+        since = "1.0.0",
+        note = "Inefficient, use the From-trait implementation instead"
+    )]
     pub fn from_code(countrycode: String) -> CountryFilter {
         CountryFilter {
             country: countrycode.to_ascii_uppercase(),
@@ -52,6 +55,73 @@ impl<'a> From<&'a str> for CountryFilter {
     fn from(countrycode: &str) -> CountryFilter {
         CountryFilter {
             country: countrycode.to_ascii_uppercase(),
+        }
+    }
+}
+
+pub enum Region {
+    /// The European Union, consisting of 27 countries.
+    ///
+    /// Because of the Brexit, the United Kingdom is not included in this region
+    EuropeanUnion,
+    /// The European Economic Area, consisting of the European Union, Norway, Lichtenstein and Iceland.
+    EuropeanEconomicArea,
+    /// The Benelux consists of Belgium, The Netherlands and Luxembourgh
+    Benelux,
+    /// [5 eyes programme countries](https://en.wikipedia.org/wiki/Five_Eyes)
+    FiveEyes,
+    /// [6 eyes programme countries.](https://en.wikipedia.org/wiki/Five_Eyes#Other_international_cooperatives)
+    SixEyes,
+    /// [9 eyes programme countries.](https://en.wikipedia.org/wiki/Five_Eyes#Other_international_cooperatives)
+    NineEyes,
+    /// [14 eyes programme countries.](https://en.wikipedia.org/wiki/Five_Eyes#Other_international_cooperatives)
+    FourteenEyes,
+}
+
+impl Region {
+    pub fn from_str(region_short: &str) -> Option<Region> {
+        match region_short {
+            "eu" | "ею" => Some(Region::EuropeanUnion),
+            "eea" => Some(Region::EuropeanEconomicArea),
+            "benelux" => Some(Region::Benelux),
+            "5e" => Some(Region::FiveEyes),
+            "6e" => Some(Region::FiveEyes),
+            "9e" => Some(Region::FiveEyes),
+            "14e" => Some(Region::FourteenEyes),
+            _ => None,
+        }
+    }
+
+    pub fn short(&self) -> &'static str {
+        match self {
+            Region::EuropeanUnion => "eu",
+            Region::EuropeanEconomicArea => "eea",
+            Region::Benelux => "benelux",
+            Region::FiveEyes => "5e",
+            Region::SixEyes => "6e",
+            Region::NineEyes => "9e",
+            Region::FourteenEyes => "14e",
+        }
+    }
+
+    pub fn countries(&self) -> Vec<&str> {
+        match self {
+            Region::EuropeanEconomicArea => vec![
+                "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
+                "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "NO",
+                "LI", "IS",
+            ],
+            Region::EuropeanUnion => vec![
+                "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
+                "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+            ],
+            Region::Benelux => vec!["BE", "LU", "NL"],
+            Region::FiveEyes => vec!["AU", "CA", "NZ", "GB", "US"],
+            Region::SixEyes => vec!["AU", "CA", "FR", "NZ", "GB", "US"],
+            Region::NineEyes => vec!["AU", "CA", "DK", "FR", "NL", "NO", "NZ", "GB", "US"],
+            Region::FourteenEyes => vec![
+                "AU", "BE", "CA", "DE", "DK", "ES", "FR", "IT", "NL", "NO", "NZ", "GB", "SE", "US",
+            ],
         }
     }
 }
