@@ -97,6 +97,24 @@ impl Region {
         }
     }
 
+    /// Returns all possible region codes with their respective meanings in human readable form.
+    /// Useful to provide lists to your users to choose from.
+    ///
+    /// Using a value from index 0 of the tuple will guaranteed give a Some when calling `[from_str](#method_from_str)`
+    pub fn from_str_options() -> [(&'static str, &'static str); 8] {
+        [
+            ("EU", "The European Union"),
+            ("ЕЮ", "The European Union"),
+            ("EEA", "The European Economic Area"),
+            ("BENELUX", "Countries of the Benelux"),
+            ("5E", "Countries involved in the Five Eyes programme."),
+            ("6E", "Countries involved in the Six Eyes programme."),
+            ("9E", "Countries involved in the Nine Eyes programme."),
+            ("14E", "Countries involved in the Fourteen Eyes programme."),
+        ]
+    }
+
+    /// Returns the main short notation for a given Region.
     pub fn short(&self) -> &'static str {
         match self {
             Region::EuropeanUnion => "EU",
