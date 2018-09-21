@@ -186,6 +186,7 @@ impl CountriesFilter {
         since = "1.1.0",
         note = "Use the Region object instead. It has more regions and better."
     )]
+    #[allow(deprecated)]
     pub fn from_region(region: &str) -> Option<CountriesFilter> {
         match region.to_lowercase().as_ref() {
             "eu" | "ею" => Some(CountriesFilter {
@@ -494,33 +495,33 @@ mod tests {
     #[test]
     fn valid_regions() {
         assert_eq!(
-            Region::from_str("eu").unwrap().countries(),
+            Region::from_str("EU").unwrap().countries(),
             vec![
                 "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
                 "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
             ]
         );
         assert_eq!(
-            Region::from_str("ею").unwrap().countries(),
+            Region::from_str("ЕЮ").unwrap().countries(),
             vec![
                 "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
                 "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
             ]
         );
         assert_eq!(
-            Region::from_str("5e").unwrap().countries(),
+            Region::from_str("5E").unwrap().countries(),
             vec!["AU", "CA", "NZ", "GB", "US"]
         );
         assert_eq!(
-            Region::from_str("6e").unwrap().countries(),
+            Region::from_str("6E").unwrap().countries(),
             vec!["AU", "CA", "FR", "NZ", "GB", "US"]
         );
         assert_eq!(
-            Region::from_str("9e").unwrap().countries(),
+            Region::from_str("9E").unwrap().countries(),
             vec!["AU", "CA", "DK", "FR", "NL", "NO", "NZ", "GB", "US"]
         );
         assert_eq!(
-            Region::from_str("14e").unwrap().countries(),
+            Region::from_str("14E").unwrap().countries(),
             vec![
                 "AU", "BE", "CA", "DE", "DK", "ES", "FR", "IT", "NL", "NO", "NZ", "GB", "SE", "US",
             ],
