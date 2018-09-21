@@ -80,28 +80,32 @@ pub enum Region {
 }
 
 impl Region {
+    /// Tries to create a Region from a string slice. Returns a Region if there's one represented
+    /// by your str slice. Returns None otherwise.
+    ///
+    /// The provided str slice should be uppercase!
     pub fn from_str(region_short: &str) -> Option<Region> {
         match region_short {
-            "eu" | "ею" => Some(Region::EuropeanUnion),
-            "eea" => Some(Region::EuropeanEconomicArea),
-            "benelux" => Some(Region::Benelux),
-            "5e" => Some(Region::FiveEyes),
-            "6e" => Some(Region::SixEyes),
-            "9e" => Some(Region::NineEyes),
-            "14e" => Some(Region::FourteenEyes),
+            "EU" | "ЕЮ" => Some(Region::EuropeanUnion),
+            "EEA" => Some(Region::EuropeanEconomicArea),
+            "BENELUX" => Some(Region::Benelux),
+            "5E" => Some(Region::FiveEyes),
+            "6E" => Some(Region::SixEyes),
+            "9E" => Some(Region::NineEyes),
+            "14E" => Some(Region::FourteenEyes),
             _ => None,
         }
     }
 
     pub fn short(&self) -> &'static str {
         match self {
-            Region::EuropeanUnion => "eu",
-            Region::EuropeanEconomicArea => "eea",
-            Region::Benelux => "benelux",
-            Region::FiveEyes => "5e",
-            Region::SixEyes => "6e",
-            Region::NineEyes => "9e",
-            Region::FourteenEyes => "14e",
+            Region::EuropeanUnion => "EU",
+            Region::EuropeanEconomicArea => "EEA",
+            Region::Benelux => "BENELUX",
+            Region::FiveEyes => "5E",
+            Region::SixEyes => "6E",
+            Region::NineEyes => "9E",
+            Region::FourteenEyes => "14E",
         }
     }
 
