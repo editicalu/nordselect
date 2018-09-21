@@ -59,6 +59,7 @@ impl<'a> From<&'a str> for CountryFilter {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub enum Region {
     /// The European Union, consisting of 27 countries.
     ///
@@ -85,8 +86,8 @@ impl Region {
             "eea" => Some(Region::EuropeanEconomicArea),
             "benelux" => Some(Region::Benelux),
             "5e" => Some(Region::FiveEyes),
-            "6e" => Some(Region::FiveEyes),
-            "9e" => Some(Region::FiveEyes),
+            "6e" => Some(Region::SixEyes),
+            "9e" => Some(Region::NineEyes),
             "14e" => Some(Region::FourteenEyes),
             _ => None,
         }
@@ -439,5 +440,51 @@ mod tests {
 
         assert!(server_opt.is_some());
         assert_eq!(server_opt.unwrap().flag, "AZ");
+    }
+
+    #[test]
+    fn valid_regions() {
+        assert_eq!(
+            Region::from_str("eu").unwrap().countries(),
+            vec![
+                "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
+                "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+            ]
+        );
+        assert_eq!(
+            Region::from_str("ею").unwrap().countries(),
+            vec![
+                "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
+                "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+            ]
+        );
+        assert_eq!(
+            Region::from_str("5e").unwrap().countries(),
+            vec!["AU", "CA", "NZ", "GB", "US"]
+        );
+        assert_eq!(
+            Region::from_str("6e").unwrap().countries(),
+            vec!["AU", "CA", "FR", "NZ", "GB", "US"]
+        );
+        assert_eq!(
+            Region::from_str("9e").unwrap().countries(),
+            vec!["AU", "CA", "DK", "FR", "NL", "NO", "NZ", "GB", "US"]
+        );
+        assert_eq!(
+            Region::from_str("14e").unwrap().countries(),
+            vec![
+                "AU", "BE", "CA", "DE", "DK", "ES", "FR", "IT", "NL", "NO", "NZ", "GB", "SE", "US",
+            ],
+        )
+    }
+
+    #[test]
+    fn invalid_regions() {
+        assert_eq!(Region::from_str("blablabla"), None);
+        assert_eq!(Region::from_str(""), None);
+        assert_eq!(Region::from_str("idk"), None);
+        assert_eq!(Region::from_str("test"), None);
+        assert_eq!(Region::from_str("12e"), None);
+        assert_eq!(Region::from_str("15e"), None);
     }
 }
