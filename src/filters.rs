@@ -195,6 +195,19 @@ impl CountriesFilter {
     }
 }
 
+impl From<Region> for CountriesFilter {
+    fn from(region: Region) -> CountriesFilter {
+        CountriesFilter {
+            countries: HashSet::from_iter(
+                region
+                    .countries()
+                    .into_iter()
+                    .map(|str_slice| String::from(str_slice)),
+            ),
+        }
+    }
+}
+
 impl From<HashSet<String>> for CountriesFilter {
     fn from(countries: HashSet<String>) -> CountriesFilter {
         CountriesFilter { countries }
