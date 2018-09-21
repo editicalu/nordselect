@@ -525,7 +525,12 @@ mod tests {
             vec![
                 "AU", "BE", "CA", "DE", "DK", "ES", "FR", "IT", "NL", "NO", "NZ", "GB", "SE", "US",
             ],
-        )
+        );
+
+        // Make sure we do not forget a region
+        for (region, _) in Region::from_str_options().into_iter() {
+            assert!(Region::from_str(region).is_some());
+        }
     }
 
     #[test]
