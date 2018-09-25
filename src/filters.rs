@@ -61,7 +61,7 @@ impl<'a> From<&'a str> for CountryFilter {
 
 #[derive(Debug, PartialEq)]
 pub enum Region {
-    /// The European Union, consisting of 27 countries.
+    /// The [European Union](https://en.wikipedia.org/wiki/European_Union), consisting of 27 countries.
     ///
     /// Because of the Brexit, the United Kingdom is not included in this region
     EuropeanUnion,
@@ -83,7 +83,7 @@ impl Region {
     /// Tries to create a Region from a string slice. Returns a Region if there's one represented
     /// by your str slice. Returns None otherwise.
     ///
-    /// The provided str slice should be uppercase!
+    /// The provided str slice should be **uppercase**!
     pub fn from_str(region_short: &str) -> Option<Region> {
         match region_short {
             "EU" | "ЕЮ" => Some(Region::EuropeanUnion),
@@ -104,7 +104,7 @@ impl Region {
     pub fn from_str_options() -> [(&'static str, &'static str); 8] {
         [
             ("EU", "The European Union"),
-            ("ЕЮ", "The European Union"),
+            ("ЕЮ", "The European Union (Cyrillic notation)"),
             ("EEA", "The European Economic Area"),
             ("BENELUX", "Countries of the Benelux"),
             ("5E", "Countries involved in the Five Eyes programme."),
