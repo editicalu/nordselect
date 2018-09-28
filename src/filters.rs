@@ -184,7 +184,7 @@ impl CountriesFilter {
     /// always return `Some(CountriesFilter)`.
     #[deprecated(
         since = "1.1.0",
-        note = "Use the Region object instead. It has more regions and better."
+        note = "Use the Region object instead. It has more regions and works better."
     )]
     #[allow(deprecated)]
     pub fn from_region(region: &str) -> Option<CountriesFilter> {
@@ -207,7 +207,7 @@ impl CountriesFilter {
     /// should always give a `Some`-value.
     #[deprecated(
         since = "1.1.0",
-        note = "Use the Region object instead. It has more regions and better."
+        note = "Use the Region object instead. It has more regions and works better."
     )]
     pub fn available_regions() -> &'static [&'static str] {
         &["EU", "ЕЮ"]
@@ -217,7 +217,7 @@ impl CountriesFilter {
     /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) format.
     #[deprecated(
         since = "1.1.0",
-        note = "Use the Region object instead. It has more regions and better."
+        note = "Use the Region object instead. It has more regions and works better."
     )]
     pub fn region_countries(region: &str) -> Option<&'static [&'static str]> {
         match region.as_ref() {
