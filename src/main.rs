@@ -83,13 +83,15 @@ fn show_available_filters(data: &Servers) {
         iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
     }
     println!();
+    println!();
 
     // Show regions
-    print!("REGIONS:\t");
-    let mut iter = nordselect::filters::CountriesFilter::available_regions().into_iter();
+    println!("REGIONS:");
+    let iter = nordselect::filters::Region::from_str_options();
+    let mut iter = iter.into_iter();
     if let Some(flag) = iter.next() {
-        print!("{}", flag.to_lowercase());
-        iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
+        println!("{}\t{}", flag.0.to_lowercase(), flag.1);
+        iter.for_each(|flag| println!("{}\t{}", flag.0.to_lowercase(), flag.1));
         println!();
     }
 }
@@ -122,17 +124,17 @@ fn parse_filters(cli_filters: clap::Values, data: &Servers) -> PossibleFilters {
                         .unwrap()
                         .insert(upper);
                 } else if let Some(region_countries) =
-                    nordselect::filters::CountriesFilter::region_countries(&upper.as_ref())
+                    nordselect::filters::Region::from_str(&filter.to_uppercase())
                 {
                     if parsed_filters.country_filter.is_none() {
                         parsed_filters.country_filter = Some(HashSet::new());
                     }
-                    region_countries.iter().for_each(|flag| {
+                    region_countries.countries().into_iter().for_each(|flag| {
                         parsed_filters
                             .country_filter
                             .as_mut()
                             .unwrap()
-                            .insert(String::from(*flag));
+                            .insert(String::from(flag));
                         ()
                     });
                 } else {

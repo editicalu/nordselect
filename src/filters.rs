@@ -34,7 +34,10 @@ pub struct CountryFilter {
 impl CountryFilter {
     /// Creates a CountryFilter from the given country. The countrycode should be an
     /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) code.
-    #[deprecated(since = "1.0.0", note = "Inefficient, use the From-trait implementation instead")]
+    #[deprecated(
+        since = "1.0.0",
+        note = "Inefficient, use the From-trait implementation instead"
+    )]
     pub fn from_code(countrycode: String) -> CountryFilter {
         CountryFilter {
             country: countrycode.to_ascii_uppercase(),
@@ -52,6 +55,96 @@ impl<'a> From<&'a str> for CountryFilter {
     fn from(countrycode: &str) -> CountryFilter {
         CountryFilter {
             country: countrycode.to_ascii_uppercase(),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum Region {
+    /// The [European Union](https://en.wikipedia.org/wiki/European_Union), consisting of 27 countries.
+    ///
+    /// Because of the Brexit, the United Kingdom is not included in this region
+    EuropeanUnion,
+    /// The European Economic Area, consisting of the European Union, Norway, Lichtenstein and Iceland.
+    EuropeanEconomicArea,
+    /// The Benelux consists of Belgium, The Netherlands and Luxembourgh
+    Benelux,
+    /// [5 eyes programme countries](https://en.wikipedia.org/wiki/Five_Eyes)
+    FiveEyes,
+    /// [6 eyes programme countries.](https://en.wikipedia.org/wiki/Five_Eyes#Other_international_cooperatives)
+    SixEyes,
+    /// [9 eyes programme countries.](https://en.wikipedia.org/wiki/Five_Eyes#Other_international_cooperatives)
+    NineEyes,
+    /// [14 eyes programme countries.](https://en.wikipedia.org/wiki/Five_Eyes#Other_international_cooperatives)
+    FourteenEyes,
+}
+
+impl Region {
+    /// Tries to create a Region from a string slice. Returns a Region if there's one represented
+    /// by your str slice. Returns None otherwise.
+    ///
+    /// The provided str slice should be **uppercase**!
+    pub fn from_str(region_short: &str) -> Option<Region> {
+        match region_short {
+            "EU" | "ЕЮ" => Some(Region::EuropeanUnion),
+            "EEA" => Some(Region::EuropeanEconomicArea),
+            "BENELUX" => Some(Region::Benelux),
+            "5E" => Some(Region::FiveEyes),
+            "6E" => Some(Region::SixEyes),
+            "9E" => Some(Region::NineEyes),
+            "14E" => Some(Region::FourteenEyes),
+            _ => None,
+        }
+    }
+
+    /// Returns all possible region codes with their respective meanings in human readable form.
+    /// Useful to provide lists to your users to choose from.
+    ///
+    /// Using a value from index 0 of the tuple will guaranteed give a Some when calling `[from_str](#method_from_str)`
+    pub fn from_str_options() -> [(&'static str, &'static str); 8] {
+        [
+            ("EU", "The European Union"),
+            ("ЕЮ", "The European Union (Cyrillic notation)"),
+            ("EEA", "The European Economic Area"),
+            ("BENELUX", "Countries of the Benelux"),
+            ("5E", "Countries involved in the Five Eyes programme."),
+            ("6E", "Countries involved in the Six Eyes programme."),
+            ("9E", "Countries involved in the Nine Eyes programme."),
+            ("14E", "Countries involved in the Fourteen Eyes programme."),
+        ]
+    }
+
+    /// Returns the main short notation for a given Region.
+    pub fn short(&self) -> &'static str {
+        match self {
+            Region::EuropeanUnion => "EU",
+            Region::EuropeanEconomicArea => "EEA",
+            Region::Benelux => "BENELUX",
+            Region::FiveEyes => "5E",
+            Region::SixEyes => "6E",
+            Region::NineEyes => "9E",
+            Region::FourteenEyes => "14E",
+        }
+    }
+
+    pub fn countries(&self) -> Vec<&str> {
+        match self {
+            Region::EuropeanEconomicArea => vec![
+                "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
+                "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "NO",
+                "LI", "IS",
+            ],
+            Region::EuropeanUnion => vec![
+                "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
+                "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+            ],
+            Region::Benelux => vec!["BE", "LU", "NL"],
+            Region::FiveEyes => vec!["AU", "CA", "NZ", "GB", "US"],
+            Region::SixEyes => vec!["AU", "CA", "FR", "NZ", "GB", "US"],
+            Region::NineEyes => vec!["AU", "CA", "DK", "FR", "NL", "NO", "NZ", "GB", "US"],
+            Region::FourteenEyes => vec![
+                "AU", "BE", "CA", "DE", "DK", "ES", "FR", "IT", "NL", "NO", "NZ", "GB", "SE", "US",
+            ],
         }
     }
 }
@@ -89,6 +182,11 @@ impl CountriesFilter {
     ///
     /// When calling this with one of the `[available_regions](method.available_regions)` will
     /// always return `Some(CountriesFilter)`.
+    #[deprecated(
+        since = "1.1.0",
+        note = "Use the Region object instead. It has more regions and works better."
+    )]
+    #[allow(deprecated)]
     pub fn from_region(region: &str) -> Option<CountriesFilter> {
         match region.to_lowercase().as_ref() {
             "eu" | "ею" => Some(CountriesFilter {
@@ -107,12 +205,20 @@ impl CountriesFilter {
     ///
     /// When calling [from_region](method.from_region) with one of the values in the returned slice
     /// should always give a `Some`-value.
+    #[deprecated(
+        since = "1.1.0",
+        note = "Use the Region object instead. It has more regions and works better."
+    )]
     pub fn available_regions() -> &'static [&'static str] {
         &["EU", "ЕЮ"]
     }
 
     /// Returns the countries that are represented by the given region. Regions should be in
     /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) format.
+    #[deprecated(
+        since = "1.1.0",
+        note = "Use the Region object instead. It has more regions and works better."
+    )]
     pub fn region_countries(region: &str) -> Option<&'static [&'static str]> {
         match region.as_ref() {
             "EU" | "ЕЮ" => Some(&[
@@ -120,6 +226,19 @@ impl CountriesFilter {
                 "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
             ]),
             _ => None,
+        }
+    }
+}
+
+impl From<Region> for CountriesFilter {
+    fn from(region: Region) -> CountriesFilter {
+        CountriesFilter {
+            countries: HashSet::from_iter(
+                region
+                    .countries()
+                    .into_iter()
+                    .map(|str_slice| String::from(str_slice)),
+            ),
         }
     }
 }
@@ -340,6 +459,8 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
+
     fn countries_filter_regions_give_some() {
         for region in CountriesFilter::available_regions() {
             assert!(CountriesFilter::from_region(region).is_some());
@@ -369,5 +490,56 @@ mod tests {
 
         assert!(server_opt.is_some());
         assert_eq!(server_opt.unwrap().flag, "AZ");
+    }
+
+    #[test]
+    fn valid_regions() {
+        assert_eq!(
+            Region::from_str("EU").unwrap().countries(),
+            vec![
+                "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
+                "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+            ]
+        );
+        assert_eq!(
+            Region::from_str("ЕЮ").unwrap().countries(),
+            vec![
+                "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
+                "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+            ]
+        );
+        assert_eq!(
+            Region::from_str("5E").unwrap().countries(),
+            vec!["AU", "CA", "NZ", "GB", "US"]
+        );
+        assert_eq!(
+            Region::from_str("6E").unwrap().countries(),
+            vec!["AU", "CA", "FR", "NZ", "GB", "US"]
+        );
+        assert_eq!(
+            Region::from_str("9E").unwrap().countries(),
+            vec!["AU", "CA", "DK", "FR", "NL", "NO", "NZ", "GB", "US"]
+        );
+        assert_eq!(
+            Region::from_str("14E").unwrap().countries(),
+            vec![
+                "AU", "BE", "CA", "DE", "DK", "ES", "FR", "IT", "NL", "NO", "NZ", "GB", "SE", "US",
+            ],
+        );
+
+        // Make sure we do not forget a region
+        for (region, _) in Region::from_str_options().into_iter() {
+            assert!(Region::from_str(region).is_some());
+        }
+    }
+
+    #[test]
+    fn invalid_regions() {
+        assert_eq!(Region::from_str("blablabla"), None);
+        assert_eq!(Region::from_str(""), None);
+        assert_eq!(Region::from_str("idk"), None);
+        assert_eq!(Region::from_str("test"), None);
+        assert_eq!(Region::from_str("12e"), None);
+        assert_eq!(Region::from_str("15e"), None);
     }
 }

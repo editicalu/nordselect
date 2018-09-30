@@ -1,5 +1,11 @@
 # Changelog
 
+## Version 1.1.0
+
+- Regions are a clearer way to distinguish collections of countries.
+- Even more regions are added, including the X Eyes spy programs.
+- We now show you what regions are available and what they mean.
+
 ## Version 1.0.1
 
 - OpenSSL will be compiled from sources to avoid upstream problems
