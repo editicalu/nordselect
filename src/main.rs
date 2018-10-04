@@ -138,7 +138,15 @@ fn parse_filters(cli_filters: clap::Values, data: &Servers) -> PossibleFilters {
                         ()
                     });
                 } else {
-                    eprintln!("Error: unknown filter: \"{}\"", filter);
+                    if let Ok(binary) = std::env::current_exe()
+                        .unwrap()
+                        .into_os_string()
+                        .into_string()
+                    {
+                        eprintln!("Error: unknown filter: \"{}\". Run `{} --filters` to list all available filters.", filter, binary);
+                    } else {
+                        eprintln!("Error: unknown filter: \"{}\". Use `--filters` to list all available filters.", filter);
+                    }
                     std::process::exit(1);
                 }
             }
