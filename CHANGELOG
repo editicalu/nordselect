@@ -2,9 +2,10 @@
 
 ## Version 1.1.0
 
-- Regions are a clearer way to distinguish collections of countries.
+- Rewrote the regions system, allowing a more clean interface to developers.
 - Even more regions are added, including the X Eyes spy programs.
 - We now show you what regions are available and what they mean.
+- Better error messages make using the CLI easier.
 
 ## Version 1.0.1
 
