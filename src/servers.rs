@@ -268,6 +268,22 @@ pub enum Protocol {
     Udp,
     /// The [Transmission Control Protocol](https://en.wikipedia.org/wiki/Transmission_Control_Protocol)
     Tcp,
+    /// The older Point-to-Point Tunneling Protocol
+    ///
+    /// **Warning**: this protocol is considered unsafe. Usage is discouraged.
+    ///
+    /// From the NordVPN site:
+    /// > Although technically you can use the L2TP/PPTP protocol, it has serious security flaws.
+    /// > Whenever possible, we recommend choosing OpenVPN or IKEv2/IPSec instead.
+    Pptp,
+    /// The Layer 2 Tunneling Protocol
+    ///
+    /// **Warning**: this protocol is considered unsafe. Usage is discouraged.
+    ///
+    /// From the NordVPN site:
+    /// > Although technically you can use the L2TP/PPTP protocol, it has serious security flaws.
+    /// > Whenever possible, we recommend choosing OpenVPN or IKEv2/IPSec instead.
+    L2tp,
 }
 
 /// All manipulations that will alter the servers.

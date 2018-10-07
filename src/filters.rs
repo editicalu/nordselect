@@ -286,6 +286,8 @@ impl Filter for ProtocolFilter {
         match self.protocol {
             Protocol::Tcp => server.features.openvpn_tcp,
             Protocol::Udp => server.features.openvpn_udp,
+            Protocol::Pptp => server.features.pptp,
+            Protocol::L2tp => server.features.l2tp,
         }
     }
 }
