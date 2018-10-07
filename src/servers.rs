@@ -284,6 +284,10 @@ pub enum Protocol {
     /// > Although technically you can use the L2TP/PPTP protocol, it has serious security flaws.
     /// > Whenever possible, we recommend choosing OpenVPN or IKEv2/IPSec instead.
     L2tp,
+    /// OpenVPN over TCP with xor obfuscation
+    OpenVPNXTcp,
+    /// OpenVPN over UDP with xor obfuscation
+    OpenVPNXUdp,
 }
 
 /// All manipulations that will alter the servers.

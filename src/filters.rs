@@ -288,6 +288,8 @@ impl Filter for ProtocolFilter {
             Protocol::Udp => server.features.openvpn_udp,
             Protocol::Pptp => server.features.pptp,
             Protocol::L2tp => server.features.l2tp,
+            Protocol::OpenVPNXTcp => server.features.openvpn_tcp,
+            Protocol::OpenVPNXUdp => server.features.openvpn_udp,
         }
     }
 }
