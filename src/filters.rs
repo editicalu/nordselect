@@ -294,6 +294,7 @@ impl Filter for ProtocolFilter {
             Protocol::CyberSecProxy => server.features.proxy_cybersec,
             Protocol::SslProxy => server.features.proxy_ssl,
             Protocol::CyberSecSslProxy => server.features.proxy_ssl_cybersec,
+            Protocol::Proxy => server.features.proxy,
         }
     }
 }

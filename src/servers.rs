@@ -296,6 +296,8 @@ pub enum Protocol {
     SslProxy,
     /// Support for a proxy with CyberSec and SSL
     CyberSecSslProxy,
+    /// Use the server as a proxy
+    Proxy,
 }
 
 /// All manipulations that will alter the servers.
