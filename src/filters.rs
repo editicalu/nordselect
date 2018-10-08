@@ -290,6 +290,10 @@ impl Filter for ProtocolFilter {
             Protocol::L2tp => server.features.l2tp,
             Protocol::OpenVPNXTcp => server.features.openvpn_tcp,
             Protocol::OpenVPNXUdp => server.features.openvpn_udp,
+            Protocol::Socks => server.features.socks,
+            Protocol::CyberSecProxy => server.features.proxy_cybersec,
+            Protocol::SslProxy => server.features.proxy_ssl,
+            Protocol::CyberSecSslProxy => server.features.proxy_ssl_cybersec,
         }
     }
 }

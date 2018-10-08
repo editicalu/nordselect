@@ -264,9 +264,9 @@ impl Servers {
 #[derive(PartialEq)]
 /// A protocol to connect to the VPN server.
 pub enum Protocol {
-    /// The [User Datagram Protocol](https://en.wikipedia.org/wiki/User_Datagram_Protocol)
+    /// OpenVPN over the [User Datagram Protocol](https://en.wikipedia.org/wiki/User_Datagram_Protocol)
     Udp,
-    /// The [Transmission Control Protocol](https://en.wikipedia.org/wiki/Transmission_Control_Protocol)
+    /// OpenVPN over the [Transmission Control Protocol](https://en.wikipedia.org/wiki/Transmission_Control_Protocol)
     Tcp,
     /// The older Point-to-Point Tunneling Protocol
     ///
@@ -288,6 +288,14 @@ pub enum Protocol {
     OpenVPNXTcp,
     /// OpenVPN over UDP with xor obfuscation
     OpenVPNXUdp,
+    /// Support for the SOCKS protocol.
+    Socks,
+    /// Support for a proxy with CyberSec
+    CyberSecProxy,
+    /// Support for a proxy with SSL
+    SslProxy,
+    /// Support for a proxy with CyberSec and SSL
+    CyberSecSslProxy,
 }
 
 /// All manipulations that will alter the servers.
