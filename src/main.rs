@@ -68,7 +68,7 @@ fn parse_cli_args<'a>() -> clap::ArgMatches<'a> {
 
 fn show_available_filters(data: &Servers) {
     // Show protocols
-    println!("PROTOCOLS:\ttcp, udp");
+    println!("PROTOCOLS:\ttcp, udp, pptp, l2tp, tcp_xor, udp_xor, socks, cybersecproxy, sslproxy, cybersecsslproxy, proxy");
     // Show server types
     println!("SERVERS:\tstandard, dedicated, double, obfuscated, p2p, tor");
 
@@ -83,13 +83,15 @@ fn show_available_filters(data: &Servers) {
         iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
     }
     println!();
+    println!();
 
     // Show regions
-    print!("REGIONS:\t");
-    let mut iter = nordselect::filters::CountriesFilter::available_regions().into_iter();
+    println!("REGIONS:");
+    let iter = nordselect::filters::Region::from_str_options();
+    let mut iter = iter.into_iter();
     if let Some(flag) = iter.next() {
-        print!("{}", flag.to_lowercase());
-        iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
+        println!("{}\t{}", flag.0.to_lowercase(), flag.1);
+        iter.for_each(|flag| println!("{}\t{}", flag.0.to_lowercase(), flag.1));
         println!();
     }
 }
@@ -110,6 +112,15 @@ fn parse_filters(cli_filters: clap::Values, data: &Servers) -> PossibleFilters {
             "obfuscated" => parsed_filters.obfuscated_filter = true,
             "tcp" => parsed_filters.tcp_filter = true,
             "udp" => parsed_filters.udp_filter = true,
+            "pptp" => parsed_filters.pptp_filter = true,
+            "l2tp" => parsed_filters.l2tp = true,
+            "tcp_xor" => parsed_filters.xor_tcp = true,
+            "udp_xor" => parsed_filters.xor_udp = true,
+            "socks" => parsed_filters.socks = true,
+            "cybersecproxy" => parsed_filters.cy_pr = true,
+            "sslproxy" => parsed_filters.ssl_pr = true,
+            "cybersecsslproxy" => parsed_filters.cyssl_pr = true,
+            "proxy" => parsed_filters.pr = true,
             _ => {
                 let upper = filter.to_uppercase();
                 if flags.contains(&upper.as_ref()) {
@@ -122,21 +133,29 @@ fn parse_filters(cli_filters: clap::Values, data: &Servers) -> PossibleFilters {
                         .unwrap()
                         .insert(upper);
                 } else if let Some(region_countries) =
-                    nordselect::filters::CountriesFilter::region_countries(&upper.as_ref())
+                    nordselect::filters::Region::from_str(&filter.to_uppercase())
                 {
                     if parsed_filters.country_filter.is_none() {
                         parsed_filters.country_filter = Some(HashSet::new());
                     }
-                    region_countries.iter().for_each(|flag| {
+                    region_countries.countries().into_iter().for_each(|flag| {
                         parsed_filters
                             .country_filter
                             .as_mut()
                             .unwrap()
-                            .insert(String::from(*flag));
+                            .insert(String::from(flag));
                         ()
                     });
                 } else {
-                    eprintln!("Error: unknown filter: \"{}\"", filter);
+                    if let Ok(binary) = std::env::current_exe()
+                        .unwrap()
+                        .into_os_string()
+                        .into_string()
+                    {
+                        eprintln!("Error: unknown filter: \"{}\". Run `{} --filters` to list all available filters.", filter, binary);
+                    } else {
+                        eprintln!("Error: unknown filter: \"{}\". Use `--filters` to list all available filters.", filter);
+                    }
                     std::process::exit(1);
                 }
             }
@@ -191,14 +210,39 @@ fn apply_filters(filters_to_apply: &PossibleFilters, data: &mut Servers) {
         data.filter(&filters::CategoryFilter::from(ServerCategory::Dedicated));
     };
 
-    // Filtering servers with TCP capacity
+    // Filtering servers on protocol
     if filters_to_apply.tcp_filter {
         data.filter(&filters::ProtocolFilter::from(Protocol::Tcp));
     }
-
-    // Filtering servers with UDP capacity
     if filters_to_apply.udp_filter {
         data.filter(&filters::ProtocolFilter::from(Protocol::Udp));
+    }
+    if filters_to_apply.pptp_filter {
+        data.filter(&filters::ProtocolFilter::from(Protocol::Pptp));
+    }
+    if filters_to_apply.l2tp {
+        data.filter(&filters::ProtocolFilter::from(Protocol::L2tp));
+    }
+    if filters_to_apply.xor_tcp {
+        data.filter(&filters::ProtocolFilter::from(Protocol::OpenVPNXTcp));
+    }
+    if filters_to_apply.xor_udp {
+        data.filter(&filters::ProtocolFilter::from(Protocol::OpenVPNXUdp));
+    }
+    if filters_to_apply.socks {
+        data.filter(&filters::ProtocolFilter::from(Protocol::Socks));
+    }
+    if filters_to_apply.cy_pr {
+        data.filter(&filters::ProtocolFilter::from(Protocol::CyberSecProxy));
+    }
+    if filters_to_apply.ssl_pr {
+        data.filter(&filters::ProtocolFilter::from(Protocol::SslProxy));
+    }
+    if filters_to_apply.cyssl_pr {
+        data.filter(&filters::ProtocolFilter::from(Protocol::CyberSecSslProxy));
+    }
+    if filters_to_apply.pr {
+        data.filter(&filters::ProtocolFilter::from(Protocol::Proxy));
     }
 }
 
@@ -277,15 +321,24 @@ fn sort(data: &mut Servers, matches: &clap::ArgMatches) {
 }
 
 struct PossibleFilters {
-    pub country_filter: Option<HashSet<String>>,
-    pub standard_filter: bool,
-    pub p2p_filter: bool,
-    pub double_filter: bool,
-    pub dedicated_filter: bool,
-    pub tor_filter: bool,
-    pub obfuscated_filter: bool,
-    pub tcp_filter: bool,
-    pub udp_filter: bool,
+    country_filter: Option<HashSet<String>>,
+    standard_filter: bool,
+    p2p_filter: bool,
+    double_filter: bool,
+    dedicated_filter: bool,
+    tor_filter: bool,
+    obfuscated_filter: bool,
+    tcp_filter: bool,
+    udp_filter: bool,
+    pptp_filter: bool,
+    l2tp: bool,
+    xor_tcp: bool,
+    xor_udp: bool,
+    socks: bool,
+    cy_pr: bool,
+    ssl_pr: bool,
+    cyssl_pr: bool,
+    pr: bool,
 }
 
 impl PossibleFilters {
@@ -300,6 +353,15 @@ impl PossibleFilters {
             obfuscated_filter: false,
             tcp_filter: false,
             udp_filter: false,
+            pptp_filter: false,
+            l2tp: false,
+            xor_tcp: false,
+            xor_udp: false,
+            socks: false,
+            cy_pr: false,
+            ssl_pr: false,
+            cyssl_pr: false,
+            pr: false,
         }
     }
 }

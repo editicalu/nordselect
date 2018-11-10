@@ -264,10 +264,40 @@ impl Servers {
 #[derive(PartialEq)]
 /// A protocol to connect to the VPN server.
 pub enum Protocol {
-    /// The [User Datagram Protocol](https://en.wikipedia.org/wiki/User_Datagram_Protocol)
+    /// OpenVPN over the [User Datagram Protocol](https://en.wikipedia.org/wiki/User_Datagram_Protocol)
     Udp,
-    /// The [Transmission Control Protocol](https://en.wikipedia.org/wiki/Transmission_Control_Protocol)
+    /// OpenVPN over the [Transmission Control Protocol](https://en.wikipedia.org/wiki/Transmission_Control_Protocol)
     Tcp,
+    /// The older Point-to-Point Tunneling Protocol
+    ///
+    /// **Warning**: this protocol is considered unsafe. Usage is discouraged.
+    ///
+    /// From the NordVPN site:
+    /// > Although technically you can use the L2TP/PPTP protocol, it has serious security flaws.
+    /// > Whenever possible, we recommend choosing OpenVPN or IKEv2/IPSec instead.
+    Pptp,
+    /// The Layer 2 Tunneling Protocol
+    ///
+    /// **Warning**: this protocol is considered unsafe. Usage is discouraged.
+    ///
+    /// From the NordVPN site:
+    /// > Although technically you can use the L2TP/PPTP protocol, it has serious security flaws.
+    /// > Whenever possible, we recommend choosing OpenVPN or IKEv2/IPSec instead.
+    L2tp,
+    /// OpenVPN over TCP with xor obfuscation
+    OpenVPNXTcp,
+    /// OpenVPN over UDP with xor obfuscation
+    OpenVPNXUdp,
+    /// Support for the SOCKS protocol.
+    Socks,
+    /// Support for a proxy with CyberSec
+    CyberSecProxy,
+    /// Support for a proxy with SSL
+    SslProxy,
+    /// Support for a proxy with CyberSec and SSL
+    CyberSecSslProxy,
+    /// Use the server as a proxy
+    Proxy,
 }
 
 /// All manipulations that will alter the servers.
