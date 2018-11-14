@@ -6,6 +6,7 @@
 - Even more regions are added, including the X Eyes spy programs.
 - We now show you what regions are available and what they mean.
 - Better error messages make using the CLI easier.
+- More protocolfilters make the program able to distinguish every protocol NordVPN supports (now)
 
 ## Version 1.0.1
 
