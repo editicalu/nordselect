@@ -161,6 +161,16 @@ fn parse_filters(cli_filters: clap::Values, data: &Servers) -> PossibleFilters {
             }
         };
     }
+
+    // Use a Standard server if no special server is requested.
+    if !(parsed_filters.dedicated_filter
+        || parsed_filters.double_filter
+        || parsed_filters.obfuscated_filter
+        || parsed_filters.p2p_filter
+        || parsed_filters.tor_filter)
+    {
+        parsed_filters.standard_filter = true;
+    }
     parsed_filters
 }
 
