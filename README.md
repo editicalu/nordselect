@@ -21,7 +21,7 @@ Because of the pinging functionality, you have to execute the following command 
     # allow binary to send ping packets
     sudo setcap cap_net_raw+ep ~/.cargo/bin/nordselect
 
-Official binaries (PPA for Ubuntu and a binary AUR package) will be available when nordselect reaches the 1.0.0 release.
+We might add extra installation options in the future.
 
 # CLI Usage
 
