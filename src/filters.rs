@@ -492,7 +492,7 @@ mod tests {
         let mut data = Servers::dummy_data();
 
         data.filter(&CountriesFilter::from(HashSet::from_iter(
-            vec!["AX", "AY", "AZ"].into_iter().map(|x| x.to_string()),
+            vec!["AE", "AL", "AR"].into_iter().map(|x| x.to_string()),
         )));
 
         let server_opt = data.perfect_server();
