@@ -490,15 +490,16 @@ mod tests {
     #[test]
     fn countries_filter_simple() {
         let mut data = Servers::dummy_data();
+        let vec = vec!["AE", "AL", "AR"];
 
         data.filter(&CountriesFilter::from(HashSet::from_iter(
-            vec!["AX", "AY", "AZ"].into_iter().map(|x| x.to_string()),
+            vec.iter().map(|x| x.to_string()),
         )));
 
         let server_opt = data.perfect_server();
 
         assert!(server_opt.is_some());
-        assert_eq!(server_opt.unwrap().flag, "AZ");
+        assert!(vec.contains(&server_opt.unwrap().flag.as_str()));
     }
 
     #[test]
