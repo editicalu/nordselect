@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.1.1
+
+- Remove a clone from the API
+- Updating dependencies to the latest version
+
 ## Version 1.1.0
 
 - Rewrote the regions system, allowing a more clean interface to developers.
