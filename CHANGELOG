@@ -2,6 +2,7 @@
 
 ## Version 1.1.1 (unreleased)
 
+- Updating dependencies to the latest version
 - Bugfix in the test of the simple country filter.
 
 ## Version 1.1.0

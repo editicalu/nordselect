@@ -12,7 +12,7 @@ keywords = ["vpn", "nordvpn"]
 serde = "^1"
 serde_derive = "^1"
 serde_json = "^1"
-reqwest = "0.9.5"
+reqwest = "0.9.10"
 oping = "0.3.3"
 regex = "^1"
 
