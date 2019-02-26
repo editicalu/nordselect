@@ -2,7 +2,6 @@
 
 ## Version 1.1.1 (unreleased)
 
-- Remove a clone from the API
 - Updating dependencies to the latest version
 - Bugfix in the test of the simple country filter.
 
