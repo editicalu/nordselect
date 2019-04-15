@@ -1,6 +1,6 @@
 # NordSelect
 
-[![Build Status](https://travis-ci.org/editicalu/nordselect.svg?branch=master)](https://travis-ci.org/editicalu/nordselect)
+[![Build Status](https://travis-ci.com/editicalu/nordselect.svg?branch=master)](https://travis-ci.org/editicalu/nordselect)
 
 A fast CLI and Rust crate to find the perfect NordVPN server to connect to, based on given filters.
 
