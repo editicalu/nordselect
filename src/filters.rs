@@ -326,7 +326,6 @@ impl From<u8> for LoadFilter {
 
 impl Filter for LoadFilter {
     fn filter(&self, server: &Server) -> bool {
-        use std;
         server.load.cmp(&self.load) != std::cmp::Ordering::Greater
     }
 }
