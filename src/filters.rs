@@ -412,6 +412,41 @@ impl Filter for CategoryFilter {
     }
 }
 
+/// Filter the Servers by negating the outcome of a given filter.
+///
+/// # Example
+///
+/// ```
+/// use nordselect::Servers;
+/// use nordselect::filters::{CountryFilter, NegatingFilter};
+///
+/// let mut data = Servers::dummy_data();
+/// data.filter(&NegatingFilter::new(CountryFilter::from("BE")));
+///
+/// assert!(data.perfect_server().unwrap().flag != "BE");
+/// ```
+pub struct NegatingFilter(Box<Filter>);
+
+impl NegatingFilter {
+    pub fn new(filter: impl Filter + 'static) -> Self {
+        Self(Box::new(filter))
+    }
+}
+
+impl<T> From<Box<T>> for NegatingFilter
+where T: Filter + 'static
+{
+    fn from(filter: Box<T>) -> Self {
+        Self(filter)
+    }
+}
+
+impl Filter for NegatingFilter {
+    fn filter(&self, server: &Server) -> bool {
+        !self.0.filter(server)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::Servers;
