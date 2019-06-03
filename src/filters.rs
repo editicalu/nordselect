@@ -432,6 +432,12 @@ impl NegatingFilter {
     }
 }
 
+impl From<Box<dyn Filter + 'static>> for NegatingFilter {
+    fn from(filter: Box<dyn Filter + 'static>) -> Self {
+        Self(filter)
+    }
+}
+
 impl Filter for NegatingFilter {
     fn filter(&self, server: &Server) -> bool {
         !self.0.filter(server)
