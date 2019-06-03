@@ -411,7 +411,7 @@ impl Filter for CategoryFilter {
     }
 }
 
-/// Filter the Servers by negating the outcome of a given filter.
+/// Filter that negates the results of a given filter.
 ///
 /// # Example
 ///
@@ -429,14 +429,6 @@ pub struct NegatingFilter(Box<Filter>);
 impl NegatingFilter {
     pub fn new(filter: impl Filter + 'static) -> Self {
         Self(Box::new(filter))
-    }
-}
-
-impl<T> From<Box<T>> for NegatingFilter
-where T: Filter + 'static
-{
-    fn from(filter: Box<T>) -> Self {
-        Self(filter)
     }
 }
 
