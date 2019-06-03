@@ -61,7 +61,11 @@ fn parse_cli_args<'a>() -> clap::ArgMatches<'a> {
                 .required(false)
                 .multiple(true)
                 .index(1)
-                .help("Any restriction put on the server. This can be a country ('us'), a protocol ('tcp') or a type of server ('p2p'). See --filters"),
+                .help("Any restriction put on the server. \
+                    This can be a country ('us'), a protocol ('tcp') or a type \
+                    of server ('p2p'). \
+                    Any filter can be inverted by prepending '!' to it ('!us'). \
+                    See --filters"),
         )
         .get_matches()
 }
