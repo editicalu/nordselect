@@ -422,7 +422,7 @@ impl Filter for CategoryFilter {
 /// let mut data = Servers::dummy_data();
 /// data.filter(&NegatingFilter::new(CountryFilter::from("BE")));
 ///
-/// assert!(data.perfect_server().unwrap().flag != "BE");
+/// assert_ne!(data.perfect_server().unwrap().flag, "BE");
 /// ```
 pub struct NegatingFilter(Box<Filter>);
 
