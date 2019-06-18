@@ -98,6 +98,7 @@ fn show_available_filters(data: &Servers) {
         iter.for_each(|flag| println!("{}\t{}", flag.0.to_lowercase(), flag.1));
         println!();
     }
+    println!("Any filter can be inverted using !");
 }
 
 fn parse_static_filter(filter: &str) -> Option<(Box<dyn Filter>, bool)> {

@@ -1,7 +1,8 @@
 # Changelog
 
-## Version 1.1.1 (unreleased)
+## Version 1.2.0
 
+- Negating filter (thanks to MOZGII)
 - Updating dependencies to the latest version
 - Bugfix in the test of the simple country filter.
 
