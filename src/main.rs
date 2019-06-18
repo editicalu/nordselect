@@ -1,7 +1,7 @@
 extern crate clap;
 extern crate nordselect;
 
-use nordselect::filters;
+use nordselect::filters::{self, Filter};
 use nordselect::{Protocol, ServerCategory, Servers};
 use std::collections::HashSet;
 
@@ -61,7 +61,11 @@ fn parse_cli_args<'a>() -> clap::ArgMatches<'a> {
                 .required(false)
                 .multiple(true)
                 .index(1)
-                .help("Any restriction put on the server. This can be a country ('us'), a protocol ('tcp') or a type of server ('p2p'). See --filters"),
+                .help("Any restriction put on the server. \
+                    This can be a country ('us'), a protocol ('tcp') or a type \
+                    of server ('p2p'). \
+                    Any filter can be inverted by prepending '!' to it ('!us'). \
+                    See --filters"),
         )
         .get_matches()
 }
@@ -96,153 +100,140 @@ fn show_available_filters(data: &Servers) {
     }
 }
 
-fn parse_filters(cli_filters: clap::Values, data: &Servers) -> PossibleFilters {
+fn parse_static_filter(filter: &str) -> Option<(Box<dyn Filter>, bool)> {
+    let mut is_category_filter = false;
+    let lib_filter = {
+        let mut category_filter = |category: ServerCategory| -> Box<dyn Filter> {
+            is_category_filter = true;
+            Box::new(filters::CategoryFilter::from(category))
+        };
+        let protocol_filter = |protocol: Protocol| -> Box<dyn Filter> {
+            Box::new(filters::ProtocolFilter::from(protocol))
+        };
+
+        match filter {
+            "p2p" => category_filter(ServerCategory::P2P),
+            "standard" => category_filter(ServerCategory::Standard),
+            "double" => category_filter(ServerCategory::Double),
+            "dedicated" => category_filter(ServerCategory::Dedicated),
+            "tor" => category_filter(ServerCategory::Tor),
+            "obfuscated" => category_filter(ServerCategory::Obfuscated),
+            "tcp" => protocol_filter(Protocol::Tcp),
+            "udp" => protocol_filter(Protocol::Udp),
+            "pptp" => protocol_filter(Protocol::Pptp),
+            "l2tp" => protocol_filter(Protocol::L2tp),
+            "tcp_xor" => protocol_filter(Protocol::OpenVPNXTcp),
+            "udp_xor" => protocol_filter(Protocol::OpenVPNXUdp),
+            "socks" => protocol_filter(Protocol::Socks),
+            "cybersecproxy" => protocol_filter(Protocol::CyberSecProxy),
+            "sslproxy" => protocol_filter(Protocol::SslProxy),
+            "cybersecsslproxy" => protocol_filter(Protocol::CyberSecSslProxy),
+            "proxy" => protocol_filter(Protocol::Proxy),
+            _ => return None,
+        }
+    };
+    Some((lib_filter, is_category_filter))
+}
+
+fn consider_negating_filter<'a>(filter: &'a str) -> (&'a str, bool) {
+    if filter.len() > 0 && &filter[..1] == "!" {
+        return (&filter[1..], true);
+    }
+    (filter.into(), false)
+}
+
+#[test]
+fn consider_negating_filter_test() {
+    assert_eq!(consider_negating_filter("qwe"), ("qwe", false));
+    assert_eq!(consider_negating_filter("!qwe"), ("qwe", true));
+    assert_eq!(consider_negating_filter(""), ("", false));
+}
+
+fn parse_filters(cli_filters: clap::Values, data: &Servers) -> Vec<Box<dyn Filter>> {
     // Parse which countries are in the data
     let flags = data.flags();
 
-    let mut parsed_filters = PossibleFilters::new();
+    let mut lib_filters: Vec<Box<dyn Filter>> = Vec::new();
+    let mut category_filter_added = false;
+    let mut included_countries = HashSet::new();
+    let mut excluded_countries = HashSet::new();
 
-    for filter in cli_filters.into_iter() {
-        match filter {
-            "p2p" => parsed_filters.p2p_filter = true,
-            "standard" => parsed_filters.standard_filter = true,
-            "double" => parsed_filters.double_filter = true,
-            "dedicated" => parsed_filters.dedicated_filter = true,
-            "tor" => parsed_filters.tor_filter = true,
-            "obfuscated" => parsed_filters.obfuscated_filter = true,
-            "tcp" => parsed_filters.tcp_filter = true,
-            "udp" => parsed_filters.udp_filter = true,
-            "pptp" => parsed_filters.pptp_filter = true,
-            "l2tp" => parsed_filters.l2tp = true,
-            "tcp_xor" => parsed_filters.xor_tcp = true,
-            "udp_xor" => parsed_filters.xor_udp = true,
-            "socks" => parsed_filters.socks = true,
-            "cybersecproxy" => parsed_filters.cy_pr = true,
-            "sslproxy" => parsed_filters.ssl_pr = true,
-            "cybersecsslproxy" => parsed_filters.cyssl_pr = true,
-            "proxy" => parsed_filters.pr = true,
-            _ => {
-                let upper = filter.to_uppercase();
-                if flags.contains(&upper.as_ref()) {
-                    if parsed_filters.country_filter.is_none() {
-                        parsed_filters.country_filter = Some(HashSet::with_capacity(1));
-                    }
-                    parsed_filters
-                        .country_filter
-                        .as_mut()
-                        .unwrap()
-                        .insert(upper);
-                } else if let Some(region_countries) =
-                    nordselect::filters::Region::from_str(&filter.to_uppercase())
-                {
-                    if parsed_filters.country_filter.is_none() {
-                        parsed_filters.country_filter = Some(HashSet::new());
-                    }
-                    region_countries.countries().into_iter().for_each(|flag| {
-                        parsed_filters
-                            .country_filter
-                            .as_mut()
-                            .unwrap()
-                            .insert(String::from(flag));
-                        ()
-                    });
-                } else {
-                    if let Ok(binary) = std::env::current_exe()
-                        .unwrap()
-                        .into_os_string()
-                        .into_string()
-                    {
-                        eprintln!("Error: unknown filter: \"{}\". Run `{} --filters` to list all available filters.", filter, binary);
-                    } else {
-                        eprintln!("Error: unknown filter: \"{}\". Use `--filters` to list all available filters.", filter);
-                    }
-                    std::process::exit(1);
-                }
+    for original_filter in cli_filters.into_iter() {
+        let (filter, is_negating) = consider_negating_filter(original_filter);
+
+        if let Some((lib_filter, is_category_filter)) = parse_static_filter(filter) {
+            lib_filters.push(if is_negating {
+                Box::new(filters::NegatingFilter::from(lib_filter))
+            } else {
+                lib_filter
+            });
+            if is_category_filter {
+                category_filter_added = true;
             }
+            continue;
+        }
+
+        let filter_upper = filter.to_uppercase();
+        let contries_to_modify = if is_negating {
+            &mut excluded_countries
+        } else {
+            &mut included_countries
         };
+
+        if flags.contains(filter_upper.as_str()) {
+            contries_to_modify.insert(filter_upper);
+            continue;
+        }
+
+        if let Some(region_countries) = filters::Region::from_str(&filter_upper) {
+            region_countries.countries().into_iter().for_each(|flag| {
+                contries_to_modify.insert(flag.into());
+                ()
+            });
+            continue;
+        }
+
+        if let Ok(binary) = std::env::current_exe()
+            .unwrap()
+            .into_os_string()
+            .into_string()
+        {
+            eprintln!(
+                "Error: unknown filter: \"{}\". Run `{} --filters` to list all available filters.",
+                original_filter, binary
+            );
+        } else {
+            eprintln!(
+                "Error: unknown filter: \"{}\". Use `--filters` to list all available filters.",
+                original_filter
+            );
+        }
+        std::process::exit(1);
     }
 
     // Use a Standard server if no special server is requested.
-    if !(parsed_filters.dedicated_filter
-        || parsed_filters.double_filter
-        || parsed_filters.obfuscated_filter
-        || parsed_filters.p2p_filter
-        || parsed_filters.tor_filter)
-    {
-        parsed_filters.standard_filter = true;
+    if !category_filter_added {
+        lib_filters.push(Box::new(filters::CategoryFilter::from(
+            ServerCategory::Standard,
+        )));
     }
-    parsed_filters
+
+    // Add countries filters.
+    if !included_countries.is_empty() {
+        lib_filters.push(Box::new(filters::CountriesFilter::from(included_countries)));
+    }
+    if !excluded_countries.is_empty() {
+        lib_filters.push(Box::new(filters::NegatingFilter::new(
+            filters::CountriesFilter::from(excluded_countries),
+        )));
+    }
+
+    lib_filters
 }
 
-fn apply_filters(filters_to_apply: &PossibleFilters, data: &mut Servers) {
-    // Filtering countries
-    if let Some(ref countries) = filters_to_apply.country_filter {
-        data.filter(&filters::CountriesFilter::from(countries.clone()));
-    };
-
-    // Filtering Standard
-    if filters_to_apply.standard_filter {
-        data.filter(&filters::CategoryFilter::from(ServerCategory::Standard));
-    };
-
-    // Filtering P2P
-    if filters_to_apply.p2p_filter {
-        data.filter(&filters::CategoryFilter::from(ServerCategory::P2P));
-    };
-
-    // Filtering Tor/Onion
-    if filters_to_apply.tor_filter {
-        data.filter(&filters::CategoryFilter::from(ServerCategory::Tor));
-    };
-
-    // Filtering Double
-    if filters_to_apply.double_filter {
-        data.filter(&filters::CategoryFilter::from(ServerCategory::Double));
-    };
-
-    // Filtering Obfuscated servers
-    if filters_to_apply.obfuscated_filter {
-        data.filter(&filters::CategoryFilter::from(ServerCategory::Obfuscated));
-    };
-
-    // Filtering Dedicated
-    if filters_to_apply.dedicated_filter {
-        data.filter(&filters::CategoryFilter::from(ServerCategory::Dedicated));
-    };
-
-    // Filtering servers on protocol
-    if filters_to_apply.tcp_filter {
-        data.filter(&filters::ProtocolFilter::from(Protocol::Tcp));
-    }
-    if filters_to_apply.udp_filter {
-        data.filter(&filters::ProtocolFilter::from(Protocol::Udp));
-    }
-    if filters_to_apply.pptp_filter {
-        data.filter(&filters::ProtocolFilter::from(Protocol::Pptp));
-    }
-    if filters_to_apply.l2tp {
-        data.filter(&filters::ProtocolFilter::from(Protocol::L2tp));
-    }
-    if filters_to_apply.xor_tcp {
-        data.filter(&filters::ProtocolFilter::from(Protocol::OpenVPNXTcp));
-    }
-    if filters_to_apply.xor_udp {
-        data.filter(&filters::ProtocolFilter::from(Protocol::OpenVPNXUdp));
-    }
-    if filters_to_apply.socks {
-        data.filter(&filters::ProtocolFilter::from(Protocol::Socks));
-    }
-    if filters_to_apply.cy_pr {
-        data.filter(&filters::ProtocolFilter::from(Protocol::CyberSecProxy));
-    }
-    if filters_to_apply.ssl_pr {
-        data.filter(&filters::ProtocolFilter::from(Protocol::SslProxy));
-    }
-    if filters_to_apply.cyssl_pr {
-        data.filter(&filters::ProtocolFilter::from(Protocol::CyberSecSslProxy));
-    }
-    if filters_to_apply.pr {
-        data.filter(&filters::ProtocolFilter::from(Protocol::Proxy));
+fn apply_filters(filters_to_apply: Vec<Box<dyn Filter>>, data: &mut Servers) {
+    for filter in filters_to_apply.iter() {
+        data.filter(filter.as_ref())
     }
 }
 
@@ -320,52 +311,6 @@ fn sort(data: &mut Servers, matches: &clap::ArgMatches) {
     }
 }
 
-struct PossibleFilters {
-    country_filter: Option<HashSet<String>>,
-    standard_filter: bool,
-    p2p_filter: bool,
-    double_filter: bool,
-    dedicated_filter: bool,
-    tor_filter: bool,
-    obfuscated_filter: bool,
-    tcp_filter: bool,
-    udp_filter: bool,
-    pptp_filter: bool,
-    l2tp: bool,
-    xor_tcp: bool,
-    xor_udp: bool,
-    socks: bool,
-    cy_pr: bool,
-    ssl_pr: bool,
-    cyssl_pr: bool,
-    pr: bool,
-}
-
-impl PossibleFilters {
-    fn new() -> PossibleFilters {
-        PossibleFilters {
-            country_filter: None,
-            standard_filter: false,
-            p2p_filter: false,
-            double_filter: false,
-            dedicated_filter: false,
-            tor_filter: false,
-            obfuscated_filter: false,
-            tcp_filter: false,
-            udp_filter: false,
-            pptp_filter: false,
-            l2tp: false,
-            xor_tcp: false,
-            xor_udp: false,
-            socks: false,
-            cy_pr: false,
-            ssl_pr: false,
-            cyssl_pr: false,
-            pr: false,
-        }
-    }
-}
-
 fn main() {
     // Parse CLI args
     let matches = parse_cli_args();
@@ -394,7 +339,7 @@ fn main() {
     );
 
     // Filter servers that are not required.
-    apply_filters(&filters_to_apply, &mut data);
+    apply_filters(filters_to_apply, &mut data);
 
     // Sort the servers
     sort(&mut data, &matches);

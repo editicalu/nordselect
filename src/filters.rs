@@ -326,7 +326,6 @@ impl From<u8> for LoadFilter {
 
 impl Filter for LoadFilter {
     fn filter(&self, server: &Server) -> bool {
-        use std;
         server.load.cmp(&self.load) != std::cmp::Ordering::Greater
     }
 }
@@ -409,6 +408,39 @@ impl From<ServerCategory> for CategoryFilter {
 impl Filter for CategoryFilter {
     fn filter(&self, server: &Server) -> bool {
         server.categories.contains(&self.category)
+    }
+}
+
+/// Filter that negates the results of a given filter.
+///
+/// # Example
+///
+/// ```
+/// use nordselect::Servers;
+/// use nordselect::filters::{CountryFilter, NegatingFilter};
+///
+/// let mut data = Servers::dummy_data();
+/// data.filter(&NegatingFilter::new(CountryFilter::from("BE")));
+///
+/// assert_ne!(data.perfect_server().unwrap().flag, "BE");
+/// ```
+pub struct NegatingFilter(Box<Filter>);
+
+impl NegatingFilter {
+    pub fn new(filter: impl Filter + 'static) -> Self {
+        Self(Box::new(filter))
+    }
+}
+
+impl From<Box<dyn Filter + 'static>> for NegatingFilter {
+    fn from(filter: Box<dyn Filter + 'static>) -> Self {
+        Self(filter)
+    }
+}
+
+impl Filter for NegatingFilter {
+    fn filter(&self, server: &Server) -> bool {
+        !self.0.filter(server)
     }
 }
 
