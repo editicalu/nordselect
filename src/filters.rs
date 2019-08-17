@@ -30,21 +30,6 @@ pub struct CountryFilter {
     country: String,
 }
 
-/// Ways to construct a CountryFilter.
-impl CountryFilter {
-    /// Creates a CountryFilter from the given country. The countrycode should be an
-    /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) code.
-    #[deprecated(
-        since = "1.0.0",
-        note = "Inefficient, use the From-trait implementation instead"
-    )]
-    pub fn from_code(countrycode: String) -> CountryFilter {
-        CountryFilter {
-            country: countrycode.to_ascii_uppercase(),
-        }
-    }
-}
-
 impl Filter for CountryFilter {
     fn filter(&self, server: &Server) -> bool {
         self.country == server.flag
@@ -172,62 +157,6 @@ impl Region {
 pub struct CountriesFilter {
     /// Countries which are allowed.
     countries: HashSet<String>,
-}
-
-/// Region operations
-impl CountriesFilter {
-    /// Builds a CountriesFilter from one of the provided regions. Regions should be given in the
-    /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) format, but can be
-    /// uppercase or lowercase.
-    ///
-    /// When calling this with one of the `[available_regions](method.available_regions)` will
-    /// always return `Some(CountriesFilter)`.
-    #[deprecated(
-        since = "1.1.0",
-        note = "Use the Region object instead. It has more regions and works better."
-    )]
-    #[allow(deprecated)]
-    pub fn from_region(region: &str) -> Option<CountriesFilter> {
-        match region.to_lowercase().as_ref() {
-            "eu" | "ею" => Some(CountriesFilter {
-                countries: HashSet::from_iter(
-                    Self::region_countries("EU")
-                        .unwrap()
-                        .iter()
-                        .map(|s| String::from(*s)),
-                ),
-            }),
-            _ => None,
-        }
-    }
-
-    /// Returns regions that can be used.
-    ///
-    /// When calling [from_region](method.from_region) with one of the values in the returned slice
-    /// should always give a `Some`-value.
-    #[deprecated(
-        since = "1.1.0",
-        note = "Use the Region object instead. It has more regions and works better."
-    )]
-    pub fn available_regions() -> &'static [&'static str] {
-        &["EU", "ЕЮ"]
-    }
-
-    /// Returns the countries that are represented by the given region. Regions should be in
-    /// [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) format.
-    #[deprecated(
-        since = "1.1.0",
-        note = "Use the Region object instead. It has more regions and works better."
-    )]
-    pub fn region_countries(region: &str) -> Option<&'static [&'static str]> {
-        match region.as_ref() {
-            "EU" | "ЕЮ" => Some(&[
-                "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
-                "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
-            ]),
-            _ => None,
-        }
-    }
 }
 
 impl From<Region> for CountriesFilter {
@@ -450,32 +379,6 @@ mod tests {
     use super::*;
 
     #[test]
-    #[allow(deprecated)]
-    fn country_filter_simple_legacy() {
-        let mut data = Servers::dummy_data();
-
-        data.filter(&CountryFilter::from_code("sg".to_string()));
-
-        let server_opt = data.perfect_server();
-
-        assert!(server_opt.is_some());
-        assert_eq!(server_opt.unwrap().flag, "SG");
-    }
-
-    #[test]
-    #[allow(deprecated)]
-    fn country_filter_advanced_legacy() {
-        let mut data = Servers::dummy_data();
-
-        data.filter(&CountryFilter::from_code("Sg".to_string()));
-
-        let server_opt = data.perfect_server();
-
-        assert!(server_opt.is_some());
-        assert_eq!(server_opt.unwrap().flag, "SG");
-    }
-
-    #[test]
     fn country_filter_simple() {
         let mut data = Servers::dummy_data();
 
@@ -497,15 +400,6 @@ mod tests {
 
         assert!(server_opt.is_some());
         assert_eq!(server_opt.unwrap().flag, "SG");
-    }
-
-    #[test]
-    #[allow(deprecated)]
-
-    fn countries_filter_regions_give_some() {
-        for region in CountriesFilter::available_regions() {
-            assert!(CountriesFilter::from_region(region).is_some());
-        }
     }
 
     #[test]
