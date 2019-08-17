@@ -8,7 +8,9 @@ A fast CLI and Rust crate to find the perfect NordVPN server to connect to, base
 
 ## Arch Linux
 
-If you're on Arch Linux, you can install the [`nordselect` AUR package](https://aur.archlinux.org/packages/nordselect).
+Nordselect is available for Arch Linux as the [`nordselect` AUR package](https://aur.archlinux.org/packages/nordselect).
+
+If you don't want to compile this program (which can take a while if you're compiling from scratch), you can use my [custom repository](https://ear.wardsegers.be) and install a precompiled binary. The repo only supports x86_64.
 
 ## Using Cargo
 
