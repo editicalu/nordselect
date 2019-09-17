@@ -178,7 +178,7 @@ pub struct Servers {
 /// Functions to build and read data from the Servers.
 impl Servers {
     /// Creates a Servers by reading the given text.
-    fn from_txt(txt: &str) -> Result<Servers, Box<std::error::Error>> {
+    fn from_txt(txt: &str) -> Result<Servers, Box<dyn std::error::Error>> {
         let api_servers: Vec<ApiServer> = serde_json::from_str(&txt)?;
 
         Ok(Servers {
@@ -198,7 +198,7 @@ impl Servers {
     /// let data = nordselect::Servers::from_api();
     /// assert!(data.is_ok());
     /// ```
-    pub fn from_api() -> Result<Servers, Box<std::error::Error>> {
+    pub fn from_api() -> Result<Servers, Box<dyn std::error::Error>> {
         let mut data = reqwest::get("https://nordvpn.com/api/server")?;
         let text = data.text()?;
 
@@ -307,12 +307,12 @@ pub enum Protocol {
 /// All manipulations that will alter the servers.
 impl Servers {
     /// Applies the given filter on this serverlist.
-    pub fn filter(&mut self, filter: &Filter) {
+    pub fn filter(&mut self, filter: &dyn Filter) {
         (&mut self.servers).retain(|server| filter.filter(&server))
     }
 
     /// Sorts the servers using a Sorter. The sort is unstable.
-    pub fn sort(&mut self, sorter: &Sorter) {
+    pub fn sort(&mut self, sorter: &dyn Sorter) {
         (&mut self.servers).sort_unstable_by(|x, y| sorter.sort(x, y));
     }
 

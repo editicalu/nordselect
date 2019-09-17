@@ -338,7 +338,7 @@ impl Filter for LoadFilter {
 /// be kept.
 pub struct CombinedFilter {
     // The actual filters
-    filters: Vec<Box<Filter>>,
+    filters: Vec<Box<dyn Filter>>,
 }
 
 /// Ways to construct `CombinedFilters`.
@@ -358,15 +358,15 @@ impl CombinedFilter {
     }
 }
 
-impl From<Vec<Box<Filter>>> for CombinedFilter {
-    fn from(filters: Vec<Box<Filter>>) -> CombinedFilter {
+impl From<Vec<Box<dyn Filter>>> for CombinedFilter {
+    fn from(filters: Vec<Box<dyn Filter>>) -> CombinedFilter {
         CombinedFilter { filters }
     }
 }
 
 impl CombinedFilter {
     /// Adds a new filter
-    pub fn add_filter(&mut self, filter: Box<Filter>) {
+    pub fn add_filter(&mut self, filter: Box<dyn Filter>) {
         self.filters.push(filter);
     }
 }
@@ -425,7 +425,7 @@ impl Filter for CategoryFilter {
 ///
 /// assert_ne!(data.perfect_server().unwrap().flag, "BE");
 /// ```
-pub struct NegatingFilter(Box<Filter>);
+pub struct NegatingFilter(Box<dyn Filter>);
 
 impl NegatingFilter {
     pub fn new(filter: impl Filter + 'static) -> Self {

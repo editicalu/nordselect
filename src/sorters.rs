@@ -73,7 +73,7 @@ impl PingSorter {
     pub fn ping_single(
         servers: &Servers,
         tries: usize,
-    ) -> Result<PingSorter, Box<std::error::Error>> {
+    ) -> Result<PingSorter, Box<dyn std::error::Error>> {
         let mut ping_results = HashMap::new();
         for _ in 0..tries {
             let mut pingr = Ping::new();
@@ -109,7 +109,7 @@ impl PingSorter {
     pub fn ping_multi(
         servers: &Servers,
         tries: usize,
-    ) -> Result<PingSorter, Box<std::error::Error>> {
+    ) -> Result<PingSorter, Box<dyn std::error::Error>> {
         let mut ping_results = HashMap::new();
         for ref server in &servers.servers {
             let mut sum = 0;
