@@ -91,6 +91,8 @@ pub struct Features {
     pub proxy_ssl: bool,
     /// Support for a proxy with CyberSec and SSL
     pub proxy_ssl_cybersec: bool,
+    /// Support for WireGuard over UDP
+    pub wireguard_udp: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -298,6 +300,8 @@ pub enum Protocol {
     CyberSecSslProxy,
     /// Use the server as a proxy
     Proxy,
+    /// WireGuard over UDP
+    WireGuardUdp,
 }
 
 /// All manipulations that will alter the servers.
