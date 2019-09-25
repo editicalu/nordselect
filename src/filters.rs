@@ -142,16 +142,16 @@ impl Region {
 /// # Examples
 /// ```
 /// use nordselect::Servers;
-/// use nordselect::filters::CountriesFilter;
+/// use nordselect::filters::{CountriesFilter, Region};
 ///
 /// let mut data = Servers::dummy_data();
 ///
 /// // Countries of the European Union.
-/// data.filter(&CountriesFilter::from_region("EU").unwrap());
+/// data.filter(&CountriesFilter::from(Region::EuropeanUnion));
 ///
 /// // The country will be one of the EU.
 /// assert!(
-///     CountriesFilter::region_countries("EU").unwrap()
+///     Region::EuropeanUnion.countries()
 ///         .contains(&data.perfect_server().unwrap().flag.as_ref()));
 /// ```
 pub struct CountriesFilter {

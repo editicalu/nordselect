@@ -1,5 +1,12 @@
 # Changelog
 
+## Version 2.0.0
+
+- Deleted deprecated code
+- Several preferences make the program easier to use in different circumstances
+- More options for benchmarking available
+- verbose printing
+
 ## Version 1.3.0
 
 - Support for Wireguard servers (a.k.a. NordLynx)
