@@ -6,6 +6,7 @@
 - Several preferences make the program easier to use in different circumstances
 - More options for benchmarking available
 - verbose printing
+- Support for [reproducible builds](https://reproducible-builds.org/)
 
 ## Version 1.3.0
 
