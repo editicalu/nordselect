@@ -27,25 +27,11 @@
 //! }
 //! ```
 
-// Used to parse some data out of a string.
-extern crate regex;
-// Used to easily send GET requests.
-extern crate reqwest;
-/// Used to parse JSON data from the API.
-#[macro_use]
-extern crate serde_derive;
-/// Used for ping functionality.
-extern crate oping;
-/// Used to parse JSON data from the API.
-extern crate serde;
-/// Used to parse JSON data from the API.
-extern crate serde_json;
-
 pub mod filters;
 pub mod servers;
 pub mod sorters;
 
-pub use servers::Protocol;
-pub use servers::Server;
-pub use servers::ServerCategory;
-pub use servers::Servers;
+pub use crate::servers::Protocol;
+pub use crate::servers::Server;
+pub use crate::servers::ServerCategory;
+pub use crate::servers::Servers;

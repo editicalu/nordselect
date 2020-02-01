@@ -35,7 +35,7 @@ use oping::Ping;
 /// ```
 pub trait Sorter {
     /// Takes two servers, returns how they should be ordered according to this Sorter.
-    fn sort(&self, &Server, &Server) -> Ordering;
+    fn sort(&self, _: &Server, _: &Server) -> Ordering;
 }
 
 /// Sorter that sorts servers based on their load, favouring the least loaded one.
@@ -77,7 +77,7 @@ impl PingSorter {
         let mut ping_results = HashMap::new();
         for _ in 0..tries {
             let mut pingr = Ping::new();
-            for ref server in &servers.servers {
+            for server in &servers.servers {
                 pingr.add_host(server.domain.as_str())?;
             }
 
@@ -111,12 +111,12 @@ impl PingSorter {
         tries: usize,
     ) -> Result<PingSorter, Box<dyn std::error::Error>> {
         let mut ping_results = HashMap::new();
-        for ref server in &servers.servers {
+        for server in &servers.servers {
             let mut sum = 0;
             for _ in 0..tries {
                 let mut pingr = Ping::new();
                 pingr.add_host(server.domain.as_str())?;
-                sum = sum + (pingr.send()?.next().unwrap().latency_ms * 1000f64) as usize;
+                sum += (pingr.send()?.next().unwrap().latency_ms * 1000f64) as usize;
             }
             ping_results.insert(server.domain.clone(), sum / tries);
         }
