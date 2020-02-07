@@ -1,6 +1,3 @@
-extern crate clap;
-extern crate nordselect;
-
 use nordselect::filters::{self, Filter};
 use nordselect::{Protocol, ServerCategory, Servers};
 use std::collections::HashSet;
@@ -92,7 +89,7 @@ fn show_available_filters(data: &Servers) {
     // Show regions
     println!("REGIONS:");
     let iter = nordselect::filters::Region::from_str_options();
-    let mut iter = iter.into_iter();
+    let mut iter = iter.iter();
     if let Some(flag) = iter.next() {
         println!("{}\t{}", flag.0.to_lowercase(), flag.1);
         iter.for_each(|flag| println!("{}\t{}", flag.0.to_lowercase(), flag.1));
@@ -151,7 +148,7 @@ fn consider_negating_filter_test() {
     assert_eq!(consider_negating_filter(""), ("", false));
 }
 
-fn parse_filters(cli_filters: clap::Values, data: &Servers) -> Vec<Box<dyn Filter>> {
+fn parse_filters(cli_filters: clap::Values<'_>, data: &Servers) -> Vec<Box<dyn Filter>> {
     // Parse which countries are in the data
     let flags = data.flags();
 
@@ -239,7 +236,7 @@ fn apply_filters(filters_to_apply: Vec<Box<dyn Filter>>, data: &mut Servers) {
     }
 }
 
-fn sort(data: &mut Servers, matches: &clap::ArgMatches) {
+fn sort(data: &mut Servers, matches: &clap::ArgMatches<'_>) {
     let mut should_sort = true;
 
     // Perform ping test if required

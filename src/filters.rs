@@ -8,7 +8,7 @@ use std::iter::FromIterator;
 pub trait Filter {
     /// Returns whether this server fullfills the needs of the Filter. When false, the given server
     /// should be removed from the set.
-    fn filter(&self, &Server) -> bool;
+    fn filter(&self, _: &Server) -> bool;
 }
 
 /// Filter to only use servers from one specific country.
@@ -220,7 +220,7 @@ impl CountriesFilter {
         note = "Use the Region object instead. It has more regions and works better."
     )]
     pub fn region_countries(region: &str) -> Option<&'static [&'static str]> {
-        match region.as_ref() {
+        match region {
             "EU" | "ЕЮ" => Some(&[
                 "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE",
                 "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
@@ -237,7 +237,7 @@ impl From<Region> for CountriesFilter {
                 region
                     .countries()
                     .into_iter()
-                    .map(|str_slice| String::from(str_slice)),
+                    .map(String::from),
             ),
         }
     }
@@ -376,9 +376,7 @@ impl Filter for CombinedFilter {
         self.filters
             .iter()
             // Sorry for the confusing line of Rust code.
-            .filter(|filter| filter.filter(server))
-            .next()
-            .is_some()
+            .any(|filter| filter.filter(server))
     }
 }
 
@@ -571,7 +569,7 @@ mod tests {
         );
 
         // Make sure we do not forget a region
-        for (region, _) in Region::from_str_options().into_iter() {
+        for (region, _) in Region::from_str_options().iter() {
             assert!(Region::from_str(region).is_some());
         }
     }
