@@ -4,6 +4,16 @@
 
 A fast CLI and Rust crate to find the perfect NordVPN server to connect to, based on given filters.
 
+# Compilation
+
+```bash
+cargo build --release --locked
+```
+
+If you want to build a debug version, omit the `--release` flag.
+
+To be sure that I have [reproducible builds](https://reproducible-builds.org), all of my compiled versions will be compiled using the `Cargo.lock` and Rust version 1.40.0.
+
 # Installation
 
 ## Arch Linux

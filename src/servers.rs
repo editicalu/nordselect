@@ -2,6 +2,7 @@
 use filters::Filter;
 use reqwest;
 use serde_json;
+#[allow(deprecated)]
 use sorters::Sorter;
 use std;
 use std::collections::HashSet;
@@ -311,6 +312,8 @@ impl Servers {
         (&mut self.servers).retain(|server| filter.filter(&server))
     }
 
+    #[allow(deprecated)]
+    #[deprecated(since = "2.0.0")]
     /// Sorts the servers using a Sorter. The sort is unstable.
     pub fn sort(&mut self, sorter: &dyn Sorter) {
         (&mut self.servers).sort_unstable_by(|x, y| sorter.sort(x, y));

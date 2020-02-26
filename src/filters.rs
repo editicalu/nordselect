@@ -465,7 +465,7 @@ mod tests {
         );
 
         // Make sure we do not forget a region
-        for (region, _) in Region::from_str_options().into_iter() {
+        for (region, _) in Region::from_str_options().iter() {
             assert!(Region::from_str(region).is_some());
         }
     }

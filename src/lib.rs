@@ -41,8 +41,10 @@ extern crate serde;
 /// Used to parse JSON data from the API.
 extern crate serde_json;
 
+pub mod bench;
 pub mod filters;
 pub mod servers;
+#[deprecated(since = "2.0.0", note = "Use the new bench module instead.")]
 pub mod sorters;
 
 pub use servers::Protocol;

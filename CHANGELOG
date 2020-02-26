@@ -7,6 +7,8 @@
 - More options for benchmarking available
 - verbose printing
 - Support for [reproducible builds](https://reproducible-builds.org/)
+- Distribution as RPM (for Fedora systems) using [rust2rpm](https://pagure.io/fedora-rust/rust2rpm).
+- Distribution as Snap and Flatpak, making it easily usable on any Linux distribution.
 
 ## Version 1.3.0
 

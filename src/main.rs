@@ -2,140 +2,11 @@ extern crate clap;
 extern crate nordselect;
 
 use nordselect::filters::{self, Filter};
-use nordselect::{Protocol, ServerCategory, Servers};
+use nordselect::{ServerCategory, Servers};
 use std::collections::HashSet;
 
-fn parse_cli_args<'a>() -> clap::ArgMatches<'a> {
-    use clap::{App, Arg};
-    App::new("NordSelect")
-        .version(env!("CARGO_PKG_VERSION"))
-        .author(env!("CARGO_PKG_AUTHORS"))
-        .about(env!("CARGO_PKG_DESCRIPTION"))
-        .arg(
-            Arg::with_name("multi_ping")
-                .short("p")
-                .long("ping")
-                .help("Use ping tests with simultaneous pings")
-                .takes_value(false),
-        )
-        .arg(
-            Arg::with_name("single_ping")
-                .short("s")
-                .long("sping")
-                .help("Use ping tests and execute pings linear")
-                .takes_value(false),
-        )
-        .arg(
-            Arg::with_name("tries")
-                .short("t")
-                .long("tries")
-                .value_name("TRIES")
-                .default_value("2")
-                .help("Ping every server TRIES times")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("amount")
-                .short("a")
-                .long("amount")
-                .value_name("AMOUNT")
-                .default_value("10")
-                .help("Ping only to the least AMOUNT ones loaded")
-                .takes_value(true),
-        )
-        .arg(
-            Arg::with_name("domain")
-                .short("d")
-                .long("domain")
-                .help("Print the full domain instead of the short identifier (us1.nordvpn.com instead of us1)")
-                .takes_value(false),
-        )
-        .arg(
-            Arg::with_name("list_filters")
-                .long("filters")
-                .help("Show all available filters")
-                .takes_value(false),
-        )
-        .arg(
-            Arg::with_name("filter")
-                .required(false)
-                .multiple(true)
-                .index(1)
-                .help("Any restriction put on the server. \
-                    This can be a country ('us'), a protocol ('tcp') or a type \
-                    of server ('p2p'). \
-                    Any filter can be inverted by prepending '!' to it ('!us'). \
-                    See --filters"),
-        )
-        .get_matches()
-}
-
-fn show_available_filters(data: &Servers) {
-    // Show protocols
-    println!("PROTOCOLS:\ttcp, udp, pptp, l2tp, tcp_xor, udp_xor, socks, cybersecproxy, sslproxy, cybersecsslproxy, proxy, wg_udp");
-    // Show server types
-    println!("SERVERS:\tstandard, dedicated, double, obfuscated, p2p, tor");
-
-    // Show countries
-    let mut flags: Vec<String> = data.flags().iter().map(|&x| x.to_lowercase()).collect();
-    flags.sort_unstable();
-    let flags = flags;
-
-    let mut iter = flags.iter();
-    if let Some(flag) = iter.next() {
-        print!("COUNTRIES:\t{}", flag.to_lowercase());
-        iter.for_each(|flag| print!(", {}", flag.to_lowercase()));
-    }
-    println!();
-    println!();
-
-    // Show regions
-    println!("REGIONS:");
-    let iter = nordselect::filters::Region::from_str_options();
-    let mut iter = iter.into_iter();
-    if let Some(flag) = iter.next() {
-        println!("{}\t{}", flag.0.to_lowercase(), flag.1);
-        iter.for_each(|flag| println!("{}\t{}", flag.0.to_lowercase(), flag.1));
-        println!();
-    }
-    println!("Any filter can be inverted using !");
-}
-
-fn parse_static_filter(filter: &str) -> Option<(Box<dyn Filter>, bool)> {
-    let mut is_category_filter = false;
-    let lib_filter = {
-        let mut category_filter = |category: ServerCategory| -> Box<dyn Filter> {
-            is_category_filter = true;
-            Box::new(filters::CategoryFilter::from(category))
-        };
-        let protocol_filter = |protocol: Protocol| -> Box<dyn Filter> {
-            Box::new(filters::ProtocolFilter::from(protocol))
-        };
-
-        match filter {
-            "p2p" => category_filter(ServerCategory::P2P),
-            "standard" => category_filter(ServerCategory::Standard),
-            "double" => category_filter(ServerCategory::Double),
-            "dedicated" => category_filter(ServerCategory::Dedicated),
-            "tor" => category_filter(ServerCategory::Tor),
-            "obfuscated" => category_filter(ServerCategory::Obfuscated),
-            "tcp" => protocol_filter(Protocol::Tcp),
-            "udp" => protocol_filter(Protocol::Udp),
-            "pptp" => protocol_filter(Protocol::Pptp),
-            "l2tp" => protocol_filter(Protocol::L2tp),
-            "tcp_xor" => protocol_filter(Protocol::OpenVPNXTcp),
-            "udp_xor" => protocol_filter(Protocol::OpenVPNXUdp),
-            "socks" => protocol_filter(Protocol::Socks),
-            "cybersecproxy" => protocol_filter(Protocol::CyberSecProxy),
-            "sslproxy" => protocol_filter(Protocol::SslProxy),
-            "cybersecsslproxy" => protocol_filter(Protocol::CyberSecSslProxy),
-            "proxy" => protocol_filter(Protocol::Proxy),
-            "wg_udp" => protocol_filter(Protocol::WireGuardUdp),
-            _ => return None,
-        }
-    };
-    Some((lib_filter, is_category_filter))
-}
+mod cli_help;
+use cli_help::*;
 
 fn consider_negating_filter<'a>(filter: &'a str) -> (&'a str, bool) {
     if filter.len() > 0 && &filter[..1] == "!" {
@@ -231,12 +102,6 @@ fn parse_filters(cli_filters: clap::Values, data: &Servers) -> Vec<Box<dyn Filte
     }
 
     lib_filters
-}
-
-fn apply_filters(filters_to_apply: Vec<Box<dyn Filter>>, data: &mut Servers) {
-    for filter in filters_to_apply.iter() {
-        data.filter(filter.as_ref())
-    }
 }
 
 fn sort(data: &mut Servers, matches: &clap::ArgMatches) {
