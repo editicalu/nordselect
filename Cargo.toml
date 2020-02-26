@@ -9,13 +9,25 @@ license = "MIT"
 homepage = "https://editicalu.github.io/nordselect"
 keywords = ["vpn", "nordvpn"]
 
+[badges]
+maintenance = { status = "passively-maintained" }
+travis-ci = { repository = "editicalu/nordselect" }
+
+[features]
+default = []
+
+# Will be deleted in nordselect 3.0.0
+deprecated-oping = ["oping"]
+
 [dependencies]
 serde = "^1"
 serde_derive = "^1"
 serde_json = "^1"
-reqwest = "0.9.18"
-oping = "0.3.3"
+# Blocking will be deleted in version 3.0.0
+reqwest = { version = "0.10.2", features=["blocking"] }
 regex = "^1"
+
+oping = { version = "0.3.3", optional = true }
 
 [dependencies.clap]
 version = "^2"

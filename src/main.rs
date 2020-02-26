@@ -135,7 +135,7 @@ fn main() {
     let matches = parse_cli_args();
 
     // Get API data
-    let mut data = match Servers::from_api() {
+    let mut data = match Servers::from_blocking_api() {
         Ok(x) => x,
         Err(x) => {
             eprintln!("Could not download data: {}", x);

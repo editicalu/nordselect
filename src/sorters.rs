@@ -1,13 +1,15 @@
 //! Sorters are ways to sort Servers, whereas the first one is the most likely to be selected for usage.
 
-use super::servers::{Server, Servers};
+use super::servers::Server;
 
-use std;
 use std::cmp::Ordering;
-use std::collections::HashMap;
-use std::iter::FromIterator;
 
+#[cfg(feature = "deprecated-oping")]
 use oping::Ping;
+#[cfg(feature = "deprecated-oping")]
+use std::collections::HashMap;
+#[cfg(feature = "deprecated-oping")]
+use std::iter::FromIterator;
 
 /// A Sorter is a way to order servers. It should be noted that these are sorted from best server
 /// (according to the way of sorting) to worst one.
@@ -47,6 +49,7 @@ impl Sorter for LoadSorter {
     }
 }
 
+#[cfg(feature = "deprecated-oping")]
 /// Sorter that sorts based on a ping-test.
 ///
 /// Please note that ping tests enhance the complexity of your program, whereas the `LoadSorter`
@@ -63,6 +66,7 @@ pub struct PingSorter {
     ping_results: HashMap<String, usize>,
 }
 
+#[cfg(feature = "deprecated-oping")]
 /// Ways to set up a PingSorter.
 impl PingSorter {
     /// Creates a new PingSorter using one ping instance, doing tests simultaneously. This is less precise, but is faster to run.
@@ -125,6 +129,7 @@ impl PingSorter {
     }
 }
 
+#[cfg(feature = "deprecated-oping")]
 impl Sorter for PingSorter {
     fn sort(&self, a: &Server, b: &Server) -> Ordering {
         self.ping_results

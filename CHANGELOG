@@ -10,6 +10,7 @@
 - Better file structure
 - The CountriesFilter is now called the RegionFilter.
 - verbose printing
+- Support for blacklist filtering
 - Support for [reproducible builds](https://reproducible-builds.org/)
 
 All breaking changes will be removed in version 3.0.0

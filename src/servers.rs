@@ -2,9 +2,7 @@
 use crate::filters::Filter;
 #[allow(deprecated)]
 use crate::sorters::Sorter;
-use reqwest;
 use serde_json;
-use std;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
@@ -24,7 +22,7 @@ pub enum ServerCategory {
     Tor,
     /// A VPN server that can be used to connect to another NordVPN server.
     Double,
-    /// A VPN server that has a category that is not recognised by this library.\
+    /// A VPN server that has a category that is not recognised by this library.
     ///
     /// Should you ever encouter this in the API response, feel free to open an issue.
     UnknownServer,
@@ -191,6 +189,16 @@ impl Servers {
         })
     }
 
+    pub async fn from_api() -> Result<Servers, Box<dyn std::error::Error>> {
+        Self::from_txt(
+            &reqwest::get("https://nordvpn.com/api/server")
+                .await?
+                .text()
+                .await?,
+        )
+    }
+
+    #[deprecated(since = "2.0.0", note = "use the asynchronous api")]
     /// Downloads the list of servers from the API. Returns an error on failure.
     ///
     /// # Examples
@@ -199,8 +207,8 @@ impl Servers {
     /// let data = nordselect::Servers::from_api();
     /// assert!(data.is_ok());
     /// ```
-    pub fn from_api() -> Result<Servers, Box<dyn std::error::Error>> {
-        let mut data = reqwest::get("https://nordvpn.com/api/server")?;
+    pub fn from_blocking_api() -> Result<Servers, Box<dyn std::error::Error>> {
+        let data = reqwest::blocking::get("https://nordvpn.com/api/server")?;
         let text = data.text()?;
 
         Self::from_txt(&text)
