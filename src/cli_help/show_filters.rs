@@ -2,7 +2,8 @@ use nordselect::Servers;
 
 pub fn show_available_filters(data: &Servers) {
     // Show protocols
-    println!("PROTOCOLS:\ttcp, udp, pptp, l2tp, tcp_xor, udp_xor, socks, cybersecproxy, sslproxy, cybersecsslproxy, proxy, wg_udp");
+    // TODO: fix
+    println!("PROTOCOLS:\t");
     // Show server types
     println!("SERVERS:\tstandard, dedicated, double, obfuscated, p2p, tor");
 

@@ -31,7 +31,7 @@ pub fn parse_static_filter(filter: &str) -> Option<(Box<dyn Filter>, bool)> {
             "sslproxy" => protocol_filter(Protocol::SslProxy),
             "cybersecsslproxy" => protocol_filter(Protocol::CyberSecSslProxy),
             "proxy" => protocol_filter(Protocol::Proxy),
-            "wg_udp" => protocol_filter(Protocol::WireGuardUdp),
+            "wg_udp" | "nordlynx" => protocol_filter(Protocol::WireGuardUdp),
             _ => return None,
         }
     };

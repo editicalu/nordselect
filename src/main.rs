@@ -1,6 +1,8 @@
 extern crate clap;
 extern crate nordselect;
 
+use nordselect::bench::Benchmarker;
+use nordselect::bench::LoadBenchmarker;
 use nordselect::filters::{self, Filter};
 use nordselect::{ServerCategory, Servers};
 use std::collections::HashSet;
@@ -104,78 +106,28 @@ fn parse_filters(cli_filters: clap::Values, data: &Servers) -> Vec<Box<dyn Filte
     lib_filters
 }
 
+// TODO: sort
 fn sort(data: &mut Servers, matches: &clap::ArgMatches) {
-    let mut should_sort = true;
+    use std::collections::HashMap;
 
-    // Perform ping test if required
-    let s_ping = matches.is_present("single_ping");
-    let m_ping = matches.is_present("multi_ping");
-    if s_ping || m_ping {
-        let tries_opt = matches.value_of("tries").unwrap().parse();
-        if let Err(err) = tries_opt {
-            eprintln!("Could not read tries of pings: {}", err);
+    let bencher = LoadBenchmarker {};
 
-            std::process::exit(1);
-        }
-
-        let amount_opt = matches.value_of("amount").unwrap().parse();
-        if let Err(err) = amount_opt {
-            eprintln!("Could not read amount of pings: {}", err);
-
-            std::process::exit(1);
-        }
-
-        let amount = amount_opt.unwrap();
-        let tries = tries_opt.unwrap();
-
-        data.cut(amount);
-
-        match {
-            if s_ping {
-                nordselect::sorters::PingSorter::ping_single(&data, tries)
-            } else {
-                nordselect::sorters::PingSorter::ping_multi(&data, tries)
-            }
-        } {
-            Ok(sorter) => {
-                data.sort(&sorter);
-                should_sort = false;
-            }
-            Err(error) => {
-                eprintln!("An error occured when pinging: {}", error);
-                eprintln!("Results will not include ping results");
-
-                match error.to_string().as_str() {
-                    "oping::PingError::LibOpingError: Operation not permitted" => {
-                        eprintln!("");
-                        eprintln!(
-                            "This error means that you did not give permission to nordselect to ping."
-                        );
-                        eprintln!(
-                            "More details can be found at https://github.com/cfallin/rust-oping"
-                        );
-                        if let Ok(exe) = std::env::current_exe() {
-                            if cfg!(unix) {
-                                eprintln!("Hint: to solve this on Linux, execute the following command (as root):");
-                                eprintln!("\tsetcap cap_net_raw+ep {:#?}", exe);
-                            } else if cfg!(windows) {
-                                eprintln!("Hint: ping has not been tested on Windows. Consider using something else.");
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-
-                eprintln!("");
-
-                should_sort = true;
-            }
-        }
+    // TODO: use matches to find out which benchmarker to use
+    let mut bench_scores = HashMap::new();
+    {
+        data.servers
+            .iter()
+            .map(|server| (server, bencher.bench(server)))
+            .for_each(|tuple| {
+                // TODO: fix
+                bench_scores.insert(tuple.0.domain.clone(), tuple.1);
+            });
     }
 
-    if should_sort {
-        data.sort(&nordselect::sorters::LoadSorter);
-    }
+    let bench_scores = bench_scores;
+    data.servers.sort_by(|server_a, server_b| {
+        bench_scores[&server_a.domain].cmp(&bench_scores[&server_b.domain])
+    });
 }
 
 fn main() {

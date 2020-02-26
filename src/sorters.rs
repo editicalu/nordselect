@@ -35,7 +35,7 @@ use oping::Ping;
 /// ```
 pub trait Sorter {
     /// Takes two servers, returns how they should be ordered according to this Sorter.
-    fn sort(&self, &Server, &Server) -> Ordering;
+    fn sort(&self, _: &Server, _: &Server) -> Ordering;
 }
 
 /// Sorter that sorts servers based on their load, favouring the least loaded one.

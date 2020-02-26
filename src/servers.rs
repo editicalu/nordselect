@@ -1,9 +1,9 @@
 //! Data structures and methods to interact with the NordVPN servers.
-use filters::Filter;
+use crate::filters::Filter;
+#[allow(deprecated)]
+use crate::sorters::Sorter;
 use reqwest;
 use serde_json;
-#[allow(deprecated)]
-use sorters::Sorter;
 use std;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
