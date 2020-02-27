@@ -92,34 +92,37 @@ impl Region {
     }
 }
 
+#[deprecated(since = "2.0.0", note = "renamed to RegionFilter")]
+pub type CountriesFilter = RegionFilter;
+
 /// Filter that keeps servers from any of the provided countries.
 ///
 /// This struct can be build from your own list of countries, or it can be used with one of the
-/// provided regions. To see the available regions, use [CountriesFilter::available_regions()](#method.available_regions)
+/// provided regions. To see the available regions, use [RegionFilter::available_regions()](#method.available_regions)
 ///
 /// # Examples
 /// ```
 /// use nordselect::Servers;
-/// use nordselect::filters::{CountriesFilter, Region};
+/// use nordselect::filters::{RegionFilter, Region};
 ///
 /// let mut data = Servers::dummy_data();
 ///
 /// // Countries of the European Union.
-/// data.filter(&CountriesFilter::from(Region::EuropeanUnion));
+/// data.filter(&RegionFilter::from(Region::EuropeanUnion));
 ///
 /// // The country will be one of the EU.
 /// assert!(
 ///     Region::EuropeanUnion.countries()
 ///         .contains(&data.perfect_server().unwrap().flag.as_ref()));
 /// ```
-pub struct CountriesFilter {
+pub struct RegionFilter {
     /// Countries which are allowed.
     countries: HashSet<String>,
 }
 
-impl From<Region> for CountriesFilter {
-    fn from(region: Region) -> CountriesFilter {
-        CountriesFilter {
+impl From<Region> for RegionFilter {
+    fn from(region: Region) -> RegionFilter {
+        RegionFilter {
             countries: HashSet::from_iter(
                 region
                     .countries()
@@ -130,13 +133,13 @@ impl From<Region> for CountriesFilter {
     }
 }
 
-impl From<HashSet<String>> for CountriesFilter {
-    fn from(countries: HashSet<String>) -> CountriesFilter {
-        CountriesFilter { countries }
+impl From<HashSet<String>> for RegionFilter {
+    fn from(countries: HashSet<String>) -> RegionFilter {
+        RegionFilter { countries }
     }
 }
 
-impl Filter for CountriesFilter {
+impl Filter for RegionFilter {
     fn filter(&self, server: &Server) -> bool {
         self.countries.contains(&server.flag)
     }

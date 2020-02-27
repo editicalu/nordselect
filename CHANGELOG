@@ -3,12 +3,11 @@
 ## Version 2.0.0
 
 - Deleted deprecated code and deprecate some new one. Most notably is the deprecation of the sorter module. This is replaced by a new bench module, which gives scores.
-- Several preferences make the program easier to use in different circumstances
 - Upgrading the codebase to Rust 2018 edition
 - Asynchronous I/O for a better use of resources.
-- More options for benchmarking available
+- More options for benchmarking available, including verbose logging
 - Better file structure
-- The CountriesFilter is now called the RegionFilter.
+- The CountriesFilter is now called the RegionFilter. An alias will be included for backwards compatibility.
 - verbose printing
 - Support for blacklist filtering
 - Support for [reproducible builds](https://reproducible-builds.org/)
