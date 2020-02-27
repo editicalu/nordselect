@@ -118,6 +118,8 @@ fn sort(data: &mut Servers, matches: &clap::ArgMatches) {
         data.servers
             .iter()
             .map(|server| (server, bencher.bench(server)))
+            .filter(|(_, bench_result)| bench_result.is_ok())
+            .map(|(server, bench_result)| (server, bench_result.unwrap()))
             .for_each(|tuple| {
                 // TODO: fix
                 bench_scores.insert(tuple.0.domain.clone(), tuple.1);
