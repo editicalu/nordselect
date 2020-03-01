@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.4.1 (Rust 1.41.1)
+
+- Reproducible builds: Rust version specified for the AUR build, Cargo.lock included.
+- Reqwest update.
+
 ## Version 1.4.0
 
 - Adding nordlynx as alias (requested by @HaleTom)

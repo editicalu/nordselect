@@ -1,13 +1,12 @@
 //! Data structures and methods to interact with the NordVPN servers.
 use crate::filters::Filter;
-use reqwest;
-use serde_json;
 use crate::sorters::Sorter;
-use std;
+use reqwest;
+use serde_derive::Deserialize;
+use serde_json;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
-use serde_derive::Deserialize;
 
 #[derive(Debug, Deserialize, PartialEq, Eq, Clone)]
 /// The categories a Server can be in, as used by NordVPN.
@@ -183,11 +182,7 @@ impl Servers {
         let api_servers: Vec<ApiServer> = serde_json::from_str(&txt)?;
 
         Ok(Servers {
-            servers: Vec::from_iter(
-                api_servers
-                    .into_iter()
-                    .map(Server::from),
-            ),
+            servers: Vec::from_iter(api_servers.into_iter().map(Server::from)),
         })
     }
 
@@ -200,7 +195,7 @@ impl Servers {
     /// assert!(data.is_ok());
     /// ```
     pub fn from_api() -> Result<Servers, Box<dyn std::error::Error>> {
-        let mut data = reqwest::get("https://nordvpn.com/api/server")?;
+        let data = reqwest::blocking::get("https://nordvpn.com/api/server")?;
         let text = data.text()?;
 
         Self::from_txt(&text)
