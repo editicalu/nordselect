@@ -181,11 +181,7 @@ impl Servers {
         let api_servers: Vec<ApiServer> = serde_json::from_str(&txt)?;
 
         Ok(Servers {
-            servers: Vec::from_iter(
-                api_servers
-                    .into_iter()
-                    .map(|api_server| Server::from(api_server)),
-            ),
+            servers: Vec::from_iter(api_servers.into_iter().map(Server::from)),
         })
     }
 

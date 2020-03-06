@@ -24,7 +24,7 @@ serde = "^1"
 serde_derive = "^1"
 serde_json = "^1"
 # Blocking will be deleted in version 3.0.0
-reqwest = { version = "0.10.2", features=["blocking"] }
+reqwest = { version = "0.10.3", features = ["blocking"] }
 regex = "^1"
 
 oping = { version = "0.3.3", optional = true }

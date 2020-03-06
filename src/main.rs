@@ -24,7 +24,7 @@ fn consider_negating_filter_test() {
     assert_eq!(consider_negating_filter(""), ("", false));
 }
 
-fn parse_filters(cli_filters: clap::Values, data: &Servers) -> Vec<Box<dyn Filter>> {
+fn parse_filters(cli_filters: clap::Values<'_>, data: &Servers) -> Vec<Box<dyn Filter>> {
     // Parse which countries are in the data
     let flags = data.flags();
 

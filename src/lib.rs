@@ -36,7 +36,7 @@ pub mod servers;
 #[deprecated(since = "2.0.0", note = "Use the new bench module instead.")]
 pub mod sorters;
 
-pub use servers::Protocol;
-pub use servers::Server;
-pub use servers::ServerCategory;
-pub use servers::Servers;
+pub use crate::servers::Protocol;
+pub use crate::servers::Server;
+pub use crate::servers::ServerCategory;
+pub use crate::servers::Servers;
