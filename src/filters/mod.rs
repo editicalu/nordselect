@@ -21,7 +21,7 @@ pub use self::blacklist::BlackListFilter;
 pub use self::country::CountryFilter;
 pub use self::load::LoadFilter;
 pub use self::protocol::ProtocolFilter;
-pub use self::region::{CountriesFilter, Region};
+pub use self::region::{RegionFilter, Region};
 
 // Will be deleted in 3.0.0
 //#[deprecated(since="2.0.0")]
@@ -175,7 +175,7 @@ mod tests {
         use std::collections::HashSet;
         let mut data = Servers::dummy_data();
 
-        data.filter(&CountriesFilter::from(HashSet::with_capacity(0)));
+        data.filter(&RegionFilter::from(HashSet::with_capacity(0)));
 
         let server_opt = data.perfect_server();
 
@@ -190,7 +190,7 @@ mod tests {
         let mut data = Servers::dummy_data();
         let vec = vec!["AE", "AL", "AR"];
 
-        data.filter(&CountriesFilter::from(HashSet::from_iter(
+        data.filter(&RegionFilter::from(HashSet::from_iter(
             vec.iter().map(|x| x.to_string()),
         )));
 
