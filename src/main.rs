@@ -24,7 +24,7 @@ fn consider_negating_filter_test() {
     assert_eq!(consider_negating_filter(""), ("", false));
 }
 
-fn parse_filters(cli_filters: clap::Values, data: &Servers) -> Vec<Box<dyn Filter>> {
+fn parse_filters<'a>(matches: &clap::ArgMatches<'a>, data: &Servers) -> Vec<Box<dyn Filter>> {
     // Parse which countries are in the data
     let flags = data.flags();
 
@@ -33,7 +33,11 @@ fn parse_filters(cli_filters: clap::Values, data: &Servers) -> Vec<Box<dyn Filte
     let mut included_countries = HashSet::new();
     let mut excluded_countries = HashSet::new();
 
-    for original_filter in cli_filters.into_iter() {
+    for original_filter in matches
+        .values_of("filter")
+        .unwrap_or(clap::Values::default())
+        .into_iter()
+    {
         let (filter, is_negating) = consider_negating_filter(original_filter);
 
         if let Some((lib_filter, is_category_filter)) = parse_static_filter(filter) {
@@ -95,19 +99,35 @@ fn parse_filters(cli_filters: clap::Values, data: &Servers) -> Vec<Box<dyn Filte
 
     // Add countries filters.
     if !included_countries.is_empty() {
-        lib_filters.push(Box::new(filters::CountriesFilter::from(included_countries)));
+        lib_filters.push(Box::new(filters::RegionFilter::from(included_countries)));
     }
     if !excluded_countries.is_empty() {
         lib_filters.push(Box::new(filters::NegatingFilter::new(
-            filters::CountriesFilter::from(excluded_countries),
+            filters::RegionFilter::from(excluded_countries),
         )));
+    }
+
+    // Add load filter
+    let load_filter: Vec<&str> = matches
+        .values_of("load_filter")
+        .unwrap_or_default()
+        .collect();
+    if load_filter.len() == 2 {
+        let min_load = load_filter[0].parse::<u8>();
+        let max_load = load_filter[1].parse::<u8>();
+        match (min_load, max_load) {
+            (Ok(min_load), Ok(max_load)) => {
+                lib_filters.push(Box::new(filters::LoadFilter::from((min_load, max_load))))
+            }
+            _ => (),
+        }
     }
 
     lib_filters
 }
 
 // TODO: sort
-fn sort(data: &mut Servers, matches: &clap::ArgMatches) {
+fn sort(data: &mut Servers, _matches: &clap::ArgMatches) {
     use std::collections::HashMap;
 
     let bencher = LoadBenchmarker {};
@@ -152,12 +172,7 @@ fn main() {
     }
 
     // Detect filters
-    let filters_to_apply = parse_filters(
-        matches
-            .values_of("filter")
-            .unwrap_or(clap::Values::default()),
-        &data,
-    );
+    let filters_to_apply = parse_filters(&matches, &data);
 
     // Filter servers that are not required.
     apply_filters(filters_to_apply, &mut data);
@@ -167,13 +182,15 @@ fn main() {
 
     // Print the ideal server, if found.
     if let Some(server) = data.perfect_server() {
-        println!(
-            "{}",
-            match matches.is_present("domain") {
-                true => &server.domain,
-                false => server.name().unwrap_or(&server.domain),
-            }
-        );
+        let display_name = if !matches.is_present("domain") {
+            server.name().unwrap_or(&server.domain)
+        } else {
+            &server.domain
+        };
+        let ping = &server.ping_result;
+        let load = server.load;
+
+        println!("{} {}ms load: {} ", display_name, ping, load);
     } else {
         eprintln!("No server found");
         std::process::exit(1);

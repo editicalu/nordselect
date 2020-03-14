@@ -120,8 +120,10 @@ pub struct Server {
     pub load: u8,
     /// Categories this server is in.
     pub categories: Vec<ServerCategory>,
-    /// Features of the server
+    /// Features of the server.
     pub features: Features,
+    /// Ping result in milliseconds.
+    pub ping_result: usize,
 }
 
 impl Hash for Server {
@@ -143,6 +145,7 @@ impl From<ApiServer> for Server {
                     .map(|server_type| ServerCategory::from(server_type.name)),
             ),
             features: api_server.features,
+            ping_result: 0,
         }
     }
 }

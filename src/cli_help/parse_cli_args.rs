@@ -19,6 +19,18 @@ pub fn parse_cli_args<'a>() -> clap::ArgMatches<'a> {
                 .takes_value(false),
         )
         .arg(
+            Arg::with_name("load_filter")
+                .short("l")
+                .long("load_filter")
+                .value_delimiter("-")
+                .require_delimiter(true)
+                .min_values(2)
+                .max_values(2)
+                .validator(validate_load_range)
+                .help("Use a range to filter on server load percentage. Ex. 40-60.")
+                .takes_value(true),
+        )
+        .arg(
             Arg::with_name("tries")
                 .short("t")
                 .long("tries")
@@ -61,4 +73,16 @@ pub fn parse_cli_args<'a>() -> clap::ArgMatches<'a> {
                     See --filters"),
         )
         .get_matches()
+}
+
+fn validate_load_range(v: String) -> Result<(), String> {
+    if let Ok(number) = v.parse::<u8>() {
+        if number <= 100 {
+            Ok(())
+        } else {
+            Err(String::from("Please provide a value between 0 and 100."))
+        }
+    } else {
+        Err(String::from("Please provide numeric values for load range."))
+    }
 }
