@@ -2,6 +2,8 @@ use super::prelude::*;
 use std::collections::HashSet;
 use std::iter::FromIterator;
 
+pub use std::str::FromStr;
+
 #[derive(Debug, PartialEq)]
 pub enum Region {
     /// The [European Union](https://en.wikipedia.org/wiki/European_Union), consisting of 27 countries.
@@ -22,24 +24,23 @@ pub enum Region {
     FourteenEyes,
 }
 
-impl Region {
-    /// Tries to create a Region from a string slice. Returns a Region if there's one represented
-    /// by your str slice. Returns None otherwise.
-    ///
-    /// The provided str slice should be **uppercase**!
-    pub fn from_str(region_short: &str) -> Option<Region> {
+impl FromStr for Region {
+    type Err = ();
+    fn from_str(region_short: &str) -> Result<Region, ()> {
         match region_short {
-            "EU" | "ЕЮ" => Some(Region::EuropeanUnion),
-            "EEA" => Some(Region::EuropeanEconomicArea),
-            "BENELUX" => Some(Region::Benelux),
-            "5E" => Some(Region::FiveEyes),
-            "6E" => Some(Region::SixEyes),
-            "9E" => Some(Region::NineEyes),
-            "14E" => Some(Region::FourteenEyes),
-            _ => None,
+            "EU" | "ЕЮ" => Ok(Region::EuropeanUnion),
+            "EEA" => Ok(Region::EuropeanEconomicArea),
+            "BENELUX" => Ok(Region::Benelux),
+            "5E" => Ok(Region::FiveEyes),
+            "6E" => Ok(Region::SixEyes),
+            "9E" => Ok(Region::NineEyes),
+            "14E" => Ok(Region::FourteenEyes),
+            _ => Err(()),
         }
     }
+}
 
+impl Region {
     /// Returns all possible region codes with their respective meanings in human readable form.
     /// Useful to provide lists to your users to choose from.
     ///
@@ -123,12 +124,7 @@ pub struct RegionFilter {
 impl From<Region> for RegionFilter {
     fn from(region: Region) -> RegionFilter {
         RegionFilter {
-            countries: HashSet::from_iter(
-                region
-                    .countries()
-                    .into_iter()
-                    .map(|str_slice| String::from(str_slice)),
-            ),
+            countries: HashSet::from_iter(region.countries().into_iter().map(String::from)),
         }
     }
 }

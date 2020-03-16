@@ -37,6 +37,26 @@ pub fn parse_cli_args<'a>() -> clap::ArgMatches<'a> {
                 .takes_value(true),
         )
         .arg(
+            Arg::with_name("blacklist")
+                .short("b")
+                .long("blacklist")
+                .value_name("URI")
+                .multiple(true)
+                .takes_value(true)
+                .number_of_values(1)
+                .help("exclude servers from the given blacklist from selection. URI can be a local path or a URL."),
+        )
+        .arg(
+            Arg::with_name("whitelist")
+                .short("w")
+                .long("whitelist")
+                .value_name("URI")
+                .multiple(true)
+                .takes_value(true)
+                .number_of_values(1)
+                .help("include only servers that appear on the given whitelist. URI can be a local path or a URL."),
+        )
+        .arg(
             Arg::with_name("domain")
                 .short("d")
                 .long("domain")

@@ -11,72 +11,21 @@ pub trait Filter {
 
 mod prelude;
 
-mod blacklist;
 mod country;
+mod list;
 mod load;
 mod protocol;
 mod region;
 
-pub use self::blacklist::BlackListFilter;
 pub use self::country::CountryFilter;
+pub use self::list::BlackListFilter;
+pub use self::list::WhiteListFilter;
 pub use self::load::LoadFilter;
 pub use self::protocol::ProtocolFilter;
-pub use self::region::{CountriesFilter, Region};
+pub use self::region::{FromStr, Region, RegionFilter};
 
-// Will be deleted in 3.0.0
-//#[deprecated(since="2.0.0")]
-//type CountriesFilter = RegionFilter;
-
-/// Filter that contains multiple Filter instances. This could be more efficient, as only servers
-/// fullfilling all requirements are kept.
-///
-/// Logically, this should be viewed as an AND-gate, as every `Filter` should allow the server to
-/// be kept.
-pub struct CombinedFilter {
-    // The actual filters
-    filters: Vec<Box<dyn Filter>>,
-}
-
-/// Ways to construct `CombinedFilters`.
-impl CombinedFilter {
-    /// Builds a new `CombinedFilter`.
-    pub fn new() -> CombinedFilter {
-        CombinedFilter {
-            filters: Vec::new(),
-        }
-    }
-
-    /// Builds a new `CombinedFilter` with the given capacity.
-    pub fn with_capacity(capacity: usize) -> CombinedFilter {
-        CombinedFilter {
-            filters: Vec::with_capacity(capacity),
-        }
-    }
-}
-
-impl From<Vec<Box<dyn Filter>>> for CombinedFilter {
-    fn from(filters: Vec<Box<dyn Filter>>) -> CombinedFilter {
-        CombinedFilter { filters }
-    }
-}
-
-impl CombinedFilter {
-    /// Adds a new filter
-    pub fn add_filter(&mut self, filter: Box<dyn Filter>) {
-        self.filters.push(filter);
-    }
-}
-
-impl Filter for CombinedFilter {
-    fn filter(&self, server: &Server) -> bool {
-        self.filters
-            .iter()
-            // Sorry for the confusing line of Rust code.
-            .filter(|filter| filter.filter(server))
-            .next()
-            .is_some()
-    }
-}
+#[allow(deprecated)]
+pub use self::region::CountriesFilter;
 
 /// Filter the Servers using a given category.
 ///
@@ -237,17 +186,17 @@ mod tests {
 
         // Make sure we do not forget a region
         for (region, _) in Region::from_str_options().iter() {
-            assert!(Region::from_str(region).is_some());
+            assert!(Region::from_str(region).is_ok());
         }
     }
 
     #[test]
     fn invalid_regions() {
-        assert_eq!(Region::from_str("blablabla"), None);
-        assert_eq!(Region::from_str(""), None);
-        assert_eq!(Region::from_str("idk"), None);
-        assert_eq!(Region::from_str("test"), None);
-        assert_eq!(Region::from_str("12e"), None);
-        assert_eq!(Region::from_str("15e"), None);
+        assert_eq!(Region::from_str("blablabla"), Err(()));
+        assert_eq!(Region::from_str(""), Err(()));
+        assert_eq!(Region::from_str("idk"), Err(()));
+        assert_eq!(Region::from_str("test"), Err(()));
+        assert_eq!(Region::from_str("12e"), Err(()));
+        assert_eq!(Region::from_str("15e"), Err(()));
     }
 }
