@@ -70,13 +70,18 @@ To see all filters, use `nordselect --filters`
 
 The documentation of the library can be found at [docs.rs](https://docs.rs/nordselect/).
 
-# Development
-
-The application is in development. If you encouter a bug, please open an issue describing how the bug occured or open a PR.
-
-New features are not planned for now, but feel free to open issues to discuss them.
+# CI
 
 **Warning**: before running `cargo test`, use `dummydata.sh` to generate some dummy data.
+
+# Contributing
+
+If you encouter a bug, please open an issue describing how the bug occured.
+
+Do you know how to program in Rust? I'll accept PR's for new features and bugfixes, if the feature would be useful for multiple people. If you doubt it, open an issue in advance.
+
+If you open a PR and would like to be named in the application, feel free to add your name to the authors section in Cargo.toml (pseudonym or real name). If you don't add your name, I will assume you don't want to be named for your contribution.
+
 
 # Selection method
 
