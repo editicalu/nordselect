@@ -1,17 +1,55 @@
-use nordselect::filters::*;
+use nordselect::filters::{BlackListFilter, Filter, WhiteListFilter};
 use std::error::Error;
 
-// TODO: blacklists
+async fn blacklist(args: &clap::ArgMatches<'_>) -> Result<Option<BlackListFilter>, Box<dyn Error>> {
+    let blacklist_sources = args.values_of("blacklist");
+    if let Some(mut sources) = blacklist_sources {
+        let source = sources.next().unwrap();
+        let first_filter = if urlparse::urlparse(source).scheme.is_empty() {
+            BlackListFilter::from_file(source).await?
+        } else {
+            BlackListFilter::from_url(source).await?
+        };
+
+        for _ in sources {
+            // TODO: add support for multiple blacklists
+        }
+
+        let filter = first_filter;
+        Ok(Some(filter))
+    } else {
+        Ok(None)
+    }
+}
+
+async fn whitelist(args: &clap::ArgMatches<'_>) -> Result<Option<WhiteListFilter>, Box<dyn Error>> {
+    let whitelist_sources = args.values_of("whitelist");
+    if let Some(mut sources) = whitelist_sources {
+        let source = sources.next().unwrap();
+        let first_filter = if urlparse::urlparse(source).scheme.is_empty() {
+            WhiteListFilter::from_file(source).await?
+        } else {
+            WhiteListFilter::from_url(source).await?
+        };
+
+        for _ in sources {
+            // TODO: add support for multiple whitelists
+        }
+
+        let filter = first_filter;
+        Ok(Some(filter))
+    } else {
+        Ok(None)
+    }
+}
+
+// TODO: whitelists
 async fn parse_lists(
     args: &clap::ArgMatches<'_>,
 ) -> Result<(Option<WhiteListFilter>, Option<BlackListFilter>), Box<dyn Error>> {
-    let blacklists = args.values_of("blacklist").and_then(|paths| {});
-
-    let whitelists = args
-        .values_of("whitelist")
-        .and_then(|paths| paths.flat_map(|path| ));
-
-    Ok((None, None))
+    let blacklist = blacklist(args);
+    let whitelist = whitelist(args);
+    Ok((whitelist.await?, blacklist.await?))
 }
 
 pub async fn parse_filters(

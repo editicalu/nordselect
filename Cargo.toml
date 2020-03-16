@@ -28,6 +28,7 @@ reqwest = { version = "0.10.3", features = ["blocking"] }
 regex = "^1"
 lazy_static = "1.4.0"
 futures = "0.3.4"
+urlparse = "0.7.2"
 tokio = { version = "0.2", features = ["full"] }
 
 oping = { version = "0.3.3", optional = true }
