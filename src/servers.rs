@@ -2,10 +2,15 @@
 use crate::filters::Filter;
 #[allow(deprecated)]
 use crate::sorters::Sorter;
+use regex::Regex;
 use serde_json;
 use std::collections::HashSet;
-use std::hash::{Hash, Hasher};
 use std::iter::FromIterator;
+
+lazy_static! {
+    pub(crate) static ref DOMAIN_REGEX: Regex = { Regex::new(r"(.+)\.nordvpn.com").unwrap() };
+}
+const NORDVPN_API_URL: &'static str = "https://nordvpn.com/api/server";
 
 #[derive(Debug, Deserialize, PartialEq, Eq, Clone)]
 /// The categories a Server can be in, as used by NordVPN.
@@ -109,7 +114,7 @@ struct ApiServer {
     pub features: Features,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Eq)]
 /// A server by NordVPN.
 pub struct Server {
     /// The country this server is located in.
@@ -124,9 +129,9 @@ pub struct Server {
     pub features: Features,
 }
 
-impl Hash for Server {
-    fn hash<H: Hasher>(&self, hasher: &mut H) {
-        self.domain.hash(hasher);
+impl PartialEq for Server {
+    fn eq(&self, other: &Server) -> bool {
+        self.domain == other.domain
     }
 }
 
@@ -153,18 +158,10 @@ impl Server {
     /// This name is extracted from the `Server` everytime the function is called. Use it only to
     /// create output.
     pub fn name(&self) -> Option<&str> {
-        use regex::Regex;
-        let re = Regex::new(r"(.+)\.nordvpn.com").unwrap();
-        let caps = match re.captures(&self.domain) {
-            Some(caps) => caps,
-            None => {
-                return None;
-            }
-        };
-        match caps.get(1) {
-            Some(matches) => Some(matches.as_str()),
-            None => None,
-        }
+        DOMAIN_REGEX
+            .captures(&self.domain)
+            .and_then(|caps| caps.get(1))
+            .map(|matches| matches.as_str())
     }
 }
 
@@ -186,12 +183,7 @@ impl Servers {
     }
 
     pub async fn from_api() -> Result<Servers, Box<dyn std::error::Error>> {
-        Self::from_txt(
-            &reqwest::get("https://nordvpn.com/api/server")
-                .await?
-                .text()
-                .await?,
-        )
+        Self::from_txt(&reqwest::get(NORDVPN_API_URL).await?.text().await?)
     }
 
     #[deprecated(since = "2.0.0", note = "use the asynchronous api")]
@@ -204,7 +196,7 @@ impl Servers {
     /// assert!(data.is_ok());
     /// ```
     pub fn from_blocking_api() -> Result<Servers, Box<dyn std::error::Error>> {
-        let data = reqwest::blocking::get("https://nordvpn.com/api/server")?;
+        let data = reqwest::blocking::get(NORDVPN_API_URL)?;
         let text = data.text()?;
 
         Self::from_txt(&text)
