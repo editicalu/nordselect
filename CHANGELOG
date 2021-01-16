@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.4.2 (Rust 1.49.0)
+
+- Dependency updates
+- Rust version update
+
 ## Version 1.4.1 (Rust 1.41.1)
 
 - Reproducible builds: Rust version specified for the AUR build, Cargo.lock included.
