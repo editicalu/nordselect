@@ -8,6 +8,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: Install liboping
+      run: apt-get -yqq curl liboping-dev
     - name: Build
       run: cargo build --verbose
     - name: Prepare dummy data for the test
