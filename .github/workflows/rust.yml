@@ -4,11 +4,12 @@ on: [push]
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
 
     steps:
     - uses: actions/checkout@v1
+    - name: Install liboping
+      run: sudo apt-get install -yqq curl liboping-dev
     - name: Build
       run: cargo build --verbose
     - name: Prepare dummy data for the test
