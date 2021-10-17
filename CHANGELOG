@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.4.3 (Rust 1.55.0)
+
+- Rust version update
+- Package is now passively maintained
+
 ## Version 1.4.2 (Rust 1.49.0)
 
 - Dependency updates

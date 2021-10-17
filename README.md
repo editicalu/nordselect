@@ -1,5 +1,9 @@
 # NordSelect
 
+> **This package is passively maintained**. As I don't have a NordVPN account anymore, I'm no longer developing NordSelect. If someone finds a bug, open an issue and I'll do my best to fix it. If you feel like a feature is missing, feel free to open a PR. I'll be happy to have a look at it and merge.
+> 
+> \- Ward Segers, maintainer of NordSelect
+
 [![Build Status](https://travis-ci.com/editicalu/nordselect.svg?branch=master)](https://travis-ci.com/editicalu/nordselect)
 [![dependency status](https://deps.rs/repo/github/editicalu/nordselect/status.svg)](https://deps.rs/repo/github/editicalu/nordselect)
 
