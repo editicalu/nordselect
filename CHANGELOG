@@ -1,5 +1,10 @@
 # Changelog
 
+## Version 1.4.5 (Rust 1.63.0)
+
+- Stop locking version (AUR)
+- Dependency update (reqwest)
+
 ## Version 1.4.4 (Rust 1.62.1)
 
 - Rust version update
